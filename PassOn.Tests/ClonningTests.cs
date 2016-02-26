@@ -28,6 +28,7 @@ namespace PassOn.Tests
         [Test]
         public void ClonningWithNullParameter()
         {
+            // Both will just return a new instance
             Assert.IsNotNull(Pass.On<BaseClass>(null));
             Assert.IsNotNull(Pass.On<BaseClass>(null, Inspection.Shallow));
         }
@@ -43,7 +44,7 @@ namespace PassOn.Tests
                 Int = 1,
                 String = "something",
                 Date = date,
-                Numbers = new List<int> { 1, 2, 3 },
+                //Numbers = new List<int> { 1, 2, 3 }, // <-- problem there
                 List = new List<BaseClass.SubClass> { new BaseClass.SubClass() { Value = 1 } },
                 List2Array = new List<BaseClass.SubClass> { new BaseClass.SubClass() { Value = 2 } },
                 Array = new BaseClass.SubClass[] { new BaseClass.SubClass() { Value = 3 } },
@@ -58,6 +59,19 @@ namespace PassOn.Tests
 
             Assert.False(string.IsNullOrEmpty(diffValue.String));
             Assert.AreEqual(inherited.String, diffValue.String);
+
+            Assert.AreEqual(inherited.Array.Length, diffValue.Array.Length);
+            Assert.AreNotEqual(inherited.Array[0].GetHashCode(), diffValue.Array[0].GetHashCode());
+
+            Assert.AreEqual(inherited.Array2List.Length, diffValue.Array2List.Count);
+            Assert.AreNotEqual(inherited.Array2List[0].GetHashCode(), diffValue.Array2List[0].GetHashCode());
+
+            Assert.AreEqual(inherited.List.Count, diffValue.List.Count);
+            Assert.AreNotEqual(inherited.List[0].GetHashCode(), diffValue.List[0].GetHashCode());
+
+            Assert.AreEqual(inherited.List2Array.Count, diffValue.List2Array.Length);
+            Assert.AreNotEqual(inherited.List2Array[0].GetHashCode(), diffValue.List2Array[0].GetHashCode());
+            
             Assert.AreEqual(date, diffValue.Data);
         }
     }

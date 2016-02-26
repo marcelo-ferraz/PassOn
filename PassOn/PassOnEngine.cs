@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.Serialization;
+using PassOn.Utilities;
+using PassOn.Collections;
 
 namespace PassOn
 {
-    using DicMerge = Dictionary<Tuple<Type, Type, Type>, Delegate>;
-    using DicClone = Dictionary<Tuple<Type, Type>, Delegate>;
 
     /// <summary>
     /// Class that clones objects
@@ -23,153 +23,19 @@ namespace PassOn
     public static class PassOnEngine
     {       
         // Dictionaries for caching the (pre)compiled generated IL code.
-        private static DicMerge _cachedILMerge = new DicMerge();
-        private static DicClone _cachedILShallowClone = new DicClone();
-        private static DicClone _cachedILDeepClone = new DicClone();
-        
-
-        private static void CopyProperties(Type returnType, Type sourceType, ILGenerator il, Action<PropertyInfo, PropertyInfo> whenSame, bool ignoreType = false)
-        {
-            var destPropertys =
-                GetProperties(returnType);
-
-            foreach (var srcProperty in GetProperties(sourceType))
-            {
-                foreach (var destProperty in destPropertys)
-                {
-                    Func<bool> isAssignable = () =>
-                        destProperty.PropertyType.IsAssignableFrom(srcProperty.PropertyType) ||
-                        srcProperty.PropertyType.IsAssignableFrom(destProperty.PropertyType);
-
-                    var aliases = GetAliasesForProperty(srcProperty);
-
-                    var namesAreEqual =
-                        destProperty.Name.Equals(srcProperty.Name) ||
-                        (aliases != null && Array.IndexOf(aliases, destProperty.Name, 0) > -1);
-
-                    if ((ignoreType || isAssignable()) && namesAreEqual)
-                    {
-                        whenSame(srcProperty, destProperty);
-                    }
-                }
-            }
-        }
-
-        private static void Construct(Type type, ILGenerator il)
-        {
-            ConstructorInfo cInfo = type.GetConstructor(Type.EmptyTypes);
-            if (cInfo != null)
-            {
-                il.Emit(OpCodes.Newobj, cInfo);
-                return;
-            }
-
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Call,
-                type.GetMethod("GetType"));
-            il.Emit(OpCodes.Stloc_0);
-            il.Emit(OpCodes.Ldloc_0);
-            il.Emit(OpCodes.Call,
-                ((Func<Type, object>)FormatterServices.GetSafeUninitializedObject).Method);
-            il.Emit(OpCodes.Castclass, type);
-        }
-
-        private static void EmitPassOn(ILGenerator il, LocalBuilder cloneVariable, PropertyInfo srcProperty, PropertyInfo destProperty)
-        {
-            il.Emit(OpCodes.Ldloc, cloneVariable);
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Call, srcProperty.GetGetMethod());
-            il.Emit(OpCodes.Call, destProperty.GetSetMethod());
-        }
+        private static Cache _cachedILMerge = new Cache();
+        private static Cache _cachedILShallowClone = new Cache();
+        private static Cache _cachedILDeepClone = new Cache();
 
         /// <summary>
-        /// Helper method to clone a reference type.
-        /// This method clones IList and IEnumerables and other reference types (classes)
-        /// Arrays are not yet supported (ex. string[])
+        /// Generic cloning method that clones an object using IL.
+        /// Only the first call of a certain type will hold back performance.
+        /// After the first call, the compiled IL is executed. 
         /// </summary>
-        /// <param name="il">IL il to emit code to.</param>
-        /// <param name="cloneVar">Local store wheren the clone object is located. (or child of)</param>
-        /// <param name="srcProperty">Property definition of the reference type to clone.</param>
-        private static void CopyReferenceType(ILGenerator il, LocalBuilder cloneVar, PropertyInfo source, PropertyInfo destination)
-        {
-            // does not copy a delegate
-            if (source.PropertyType.IsSubclassOf(typeof(Delegate))) { return; }
-
-            il.Emit(OpCodes.Ldloc, cloneVar);
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Call, source.GetGetMethod());
-            il.Emit(OpCodes.Call, 
-                GetCorrectClonningMethod(source.PropertyType, destination.PropertyType));
-            il.Emit(OpCodes.Call, destination.GetSetMethod());
-        }
-
-        /// <summary>
-        /// Returns the type of cloning to apply on a certain srcProperty when in custom mode.
-        /// Otherwise the main cloning method is returned.
-        /// You can invoke custom mode by invoking the method Clone(T obj)
-        /// </summary>
-        /// <param name="srcProperty">Property to examine</param>
-        /// <returns>Type of cloning to use for this srcProperty.</returns>
-        private static Inspection GetCloneTypeForProperty(PropertyInfo prop)
-        {
-            var attributes =
-                prop.GetCustomAttributes(typeof(CloneAttribute), true);
-
-            return attributes != null && attributes.Length > 0 ?
-                (attributes[0] as CloneAttribute).InspectionType :
-                Inspection.Deep;
-        }
-
-        private static string[] GetAliasesForProperty(PropertyInfo prop)
-        {
-            var attributes =
-                prop.GetCustomAttributes(typeof(CloneAttribute), true);
-
-            return attributes != null && attributes.Length > 0 ?
-                (attributes[0] as CloneAttribute).Aliases :
-                null;
-        }
-
-        private static PropertyInfo[] GetProperties(Type type)
-        {
-            return type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-        }
-
-        internal static MethodInfo GetCorrectClonningMethod(Type source, Type destination)
-        {
-            if (!typeof(IEnumerable).IsAssignableFrom(source) &&
-                !typeof(IEnumerable).IsAssignableFrom(destination) &&
-                !destination.IsArray &&
-                !source.IsArray)
-            {
-                return typeof(Pass)
-                    .GetMethod("Onto", new Type[] { typeof(object) })
-                    .MakeGenericMethod(destination);
-            }
-
-            var srcItem =
-                source.IsArray ? source.GetElementType() :
-                source.IsGenericType ? source.GetGenericArguments()[0] :
-                null;
-
-            var destType =
-                destination.IsArray ? destination.GetElementType() :
-                destination.IsGenericType ? destination.GetGenericArguments()[0] :
-                null;
-
-            if (srcItem == null || destType == null)
-            {
-                throw new NotSupportedException();
-            }
-
-            var cloneType = typeof(Pass.ACollectionOf<>)
-                .MakeGenericType(srcItem);
-
-            return destination.IsArray ?
-                cloneType.GetToArrayOfMethod(source, destType) :
-                cloneType.GetToListOfMethod(source, destType);
-        }
-
+        /// <param name="source"></param>
+        /// <param name="destination"></param>
+        /// <param name="returnType"></param>
+        /// <returns></returns>
         internal static object MergeWithILDeep(object source, object destination, Type returnType = null)
         {
             if(source == null || destination == null || returnType == null)
@@ -193,18 +59,16 @@ namespace PassOn
                 { return CloneObjectWithILDeep(returnType, destination);  }            
             }
 
-            Delegate myExec = null;
+            CacheItem item = 
+                _cachedILMerge.Get(returnType, source.GetType(), destination.GetType());
 
-            var key =
-                new Tuple<Type, Type, Type>(returnType, source.GetType(), destination.GetType());
-
-            if (!_cachedILMerge.TryGetValue(key, out myExec))
+            if (item == null)
             {
                 // Create ILGenerator            
                 DynamicMethod dymMethod = new DynamicMethod(
                     "DoDeepMerge",
-                    destination.GetType(),
-                    new Type[] { source.GetType(), destination.GetType() },
+                    returnType,
+                    new Type[] { source.GetType(), typeof(Delegate[]), destination.GetType() },
                     Assembly.GetExecutingAssembly().ManifestModule,
                     true);
 
@@ -212,46 +76,42 @@ namespace PassOn
 
                 LocalBuilder cloneVariable = il.DeclareLocal(returnType);
 
-                il.Emit(OpCodes.Ldarg_1);
+                il.Emit(OpCodes.Ldarg_2);
                 il.Emit(OpCodes.Stloc, cloneVariable);
 
-                CopyProperties(
-                    destination.GetType(), 
-                    source.GetType(), 
-                    il,
-                    (src, dest) =>
-                    {
-                        if ((dest.PropertyType.IsAssignableFrom(src.PropertyType) &&
-                                         (GetCloneTypeForProperty(src) == Inspection.Shallow ||
-                                         src.PropertyType.IsValueType ||
-                                         src.PropertyType == typeof(string))))
-                        {
-                            EmitPassOn(il, cloneVariable, src, dest);
-                        }//Inspection.Deep
-                        else if (src.PropertyType.IsClass)
-                        {
-                            CopyReferenceType(il, cloneVariable, src, dest);
-                        }
-                    });
+                List<Delegate> parsers = null;
+
+                Copy.Properties(destination.GetType(), source.GetType(), il,
+                    (src, dest, hasParsing, i) =>
+                        Copy.PropertyDeeply(src, dest, hasParsing, i, il, cloneVariable), 
+                    true,
+                    out parsers);
 
                 il.Emit(OpCodes.Ldloc_0);
                 il.Emit(OpCodes.Ret);
 
-                var delType = typeof(Func<,,>)
-                    .MakeGenericType(source.GetType(), destination.GetType(), returnType ?? destination.GetType());
+                var delType = typeof(Func<,,,>).MakeGenericType(
+                    source.GetType(),
+                    typeof(Delegate[]), 
+                    destination.GetType(), 
+                    returnType);
 
-                myExec = dymMethod.CreateDelegate(delType);
-                _cachedILMerge.Add(key, myExec);
+                item = _cachedILMerge.Add(
+                    dymMethod.CreateDelegate(delType),
+                    parsers.ToArray(),
+                    returnType, source.GetType(), destination.GetType());
             }
-            return myExec.DynamicInvoke(source, destination);
+            return item.Parser.DynamicInvoke(
+                source, item.CustomParsers, destination);
         }
-
+        
         /// <summary>
         /// Generic cloning method that clones an object using IL.
         /// Only the first call of a certain type will hold back performance.
         /// After the first call, the compiled IL is executed. 
         /// </summary>
-        /// <param name="left">Type of object to clone</param>
+        /// <param name="returnType">Type of return object with the cloned values</param>
+        /// <param name="source">source object that will be cloned</param>
         /// <returns>Cloned object (deeply cloned)</returns>
         internal static object CloneObjectWithILDeep(Type returnType, object source)
         {
@@ -260,9 +120,7 @@ namespace PassOn
                 if (returnType == null)
                 {
                     if (source == null)
-                    {
-                        throw new ArgumentNullException("There are no means to infer the returned type. All arguments are null");                        
-                    }
+                    { throw new ArgumentNullException("There are no means to infer the returned type. All arguments are null"); }
 
                     returnType = source.GetType();
                 }
@@ -271,18 +129,27 @@ namespace PassOn
                 { return Activator.CreateInstance(returnType); }
             }
 
-            var key = new Tuple<Type, Type>(
-                returnType, source.GetType());
+            
+            //if (!source.GetType().IsClass) 
+            //{
+            //    return CloneObjectWithILShallow(returnType, source);
+            //}
 
-            Delegate myExec = null;
+            if (source.GetType() == typeof(int))
+            {
+                System.Diagnostics.Debugger.Break();
+            }
 
-            if (!_cachedILDeepClone.TryGetValue(key, out myExec))
+            CacheItem item =
+                _cachedILMerge.Get(returnType, source.GetType());
+
+            if (item == null)
             {
                 // Create ILGenerator            
                 var dymMethod = new DynamicMethod(
                     "DoDeepClone",
                     returnType,
-                    new Type[] { source.GetType() },
+                    new Type[] { source.GetType(), typeof(Delegate[]) },
                     Assembly.GetExecutingAssembly().ManifestModule,
                     true);
 
@@ -292,36 +159,92 @@ namespace PassOn
                 var cloneVariable =
                     il.DeclareLocal(returnType);
 
-                Construct(returnType, il);
-
+                il.Construct(returnType);
                 il.Emit(OpCodes.Stloc, cloneVariable);
 
-                CopyProperties(returnType, source.GetType(), il,
-                    (src, dest) =>
-                    {
-                        if ((dest.PropertyType.IsAssignableFrom(src.PropertyType) &&
-                            (GetCloneTypeForProperty(src) == Inspection.Shallow ||
-                            src.PropertyType.IsValueType ||
-                            src.PropertyType == typeof(string))))
-                        {
-                            EmitPassOn(il, cloneVariable, src, dest);
-                        }//Inspection.Deep
-                        else if (src.PropertyType.IsClass)
-                        {
-                            CopyReferenceType(il, cloneVariable, src, dest);
-                        }
-                    }, ignoreType: true);
+                List<Delegate> parsers = null;
+
+                Copy.Properties(
+                    returnType, 
+                    source.GetType(), 
+                    il,
+                    (src, dest, hasParsing, i) => 
+                        Copy.PropertyDeeply(src, dest, hasParsing, i, il, cloneVariable), 
+                    true, 
+                    out parsers);
 
                 il.Emit(OpCodes.Ldloc_0);
                 il.Emit(OpCodes.Ret);
 
-                var delType = typeof(Func<,>)
-                    .MakeGenericType(source.GetType(), returnType);
+                var delType = typeof(Func<,,>)
+                    .MakeGenericType(source.GetType(), typeof(Delegate[]), returnType);
 
-                myExec = dymMethod.CreateDelegate(delType);
-                _cachedILDeepClone.Add(key, myExec);
+                item = _cachedILDeepClone.Add(
+                    dymMethod.CreateDelegate(delType),
+                    parsers.ToArray(),
+                    returnType, source.GetType());
             }
-            return myExec.DynamicInvoke(source);
+            return item.Parser.DynamicInvoke(
+                source, item.CustomParsers);
+        }
+        public static int ind = 0;
+        public static void SaveMethod(Type returnType, object source)
+        {
+            if (source == null || returnType == null)
+            {
+                if (returnType == null)
+                {
+                    if (source == null)
+                    { throw new ArgumentNullException("There are no means to infer the returned type. All arguments are null"); }
+
+                    returnType = source.GetType();
+                }
+
+                if (source == null)
+                { return; }
+            }
+            ind++;
+            var ass = AppDomain.CurrentDomain.DefineDynamicAssembly(
+                new AssemblyName("nhonho" + ind.ToString()),
+                AssemblyBuilderAccess.RunAndSave);
+
+            var mod = ass.DefineDynamicModule(
+                "nhonho" + ind.ToString() + ".dll",
+                string.Concat(ass.GetName().Name, ".dll"));
+
+            var holderType = mod.DefineType("Holder");
+
+            var copyMethod =
+                holderType.DefineMethod("Copy", MethodAttributes.Static | MethodAttributes.Public, returnType,
+                           new Type[] { source.GetType(), typeof(Delegate[]) });
+
+            var il =
+                copyMethod.GetILGenerator();
+
+            var cloneVariable =
+                il.DeclareLocal(returnType);
+
+            il.Construct(returnType);
+            il.Emit(OpCodes.Stloc, cloneVariable);
+
+            List<Delegate> parsers = null;
+
+            Copy.Properties(
+                returnType,
+                source.GetType(),
+                il,
+                (src, dest, hasParsing, i) =>
+                    Copy.PropertyDeeply(src, dest, hasParsing, i, il, cloneVariable),
+                true,
+                out parsers);
+
+            il.Emit(OpCodes.Ldloc_0);
+            il.Emit(OpCodes.Ret);
+
+
+            holderType.CreateType();
+
+            ass.Save("nhonho.dll");
         }
 
         /// <summary>    
@@ -334,8 +257,6 @@ namespace PassOn
         /// <returns>Cloned object (shallow)</returns>    
         internal static object CloneObjectWithILShallow(Type returnType, object source)
         {
-            Delegate myExec = null;
-
             if (source == null || returnType == null)
             {
                 if (returnType == null)
@@ -352,13 +273,16 @@ namespace PassOn
                 { return Activator.CreateInstance(returnType); }
             }
 
-            var key = new Tuple<Type, Type>(
-                returnType, source.GetType());
+            CacheItem item =
+                _cachedILMerge.Get(returnType, source.GetType());
 
-            if (!_cachedILShallowClone.TryGetValue(key, out myExec))
+            if (item == null)
             {
-                var dymMethod =
-                    new DynamicMethod("DoShallowClone", returnType, new Type[] { source.GetType() }, Assembly.GetExecutingAssembly().ManifestModule, true);
+                var dymMethod = new DynamicMethod(
+                    "DoShallowClone", 
+                    returnType,
+                    new Type[] { source.GetType(), typeof(Delegate[]) }, 
+                    Assembly.GetExecutingAssembly().ManifestModule, true);
 
                 var cInfo =
                     returnType.GetConstructor(new Type[] { });
@@ -371,25 +295,31 @@ namespace PassOn
                 il.Emit(OpCodes.Newobj, cInfo);
                 il.Emit(OpCodes.Stloc_0);
 
-                CopyProperties(returnType, source.GetType(), il,
-                    (src, dest) =>
+                Copy.Properties(
+                    returnType, 
+                    source.GetType(), 
+                    il,
+                    (src, dest, hasParsing, i) =>
                     {
                         il.Emit(OpCodes.Ldloc_0);
                         il.Emit(OpCodes.Ldarg_0);
                         il.Emit(OpCodes.Call, src.GetGetMethod());
                         il.Emit(OpCodes.Call, dest.GetSetMethod());
-                    });
+                    }, 
+                    false);
 
                 il.Emit(OpCodes.Ldloc_0);
                 il.Emit(OpCodes.Ret);
 
                 var delType = typeof(Func<,>)
-                    .MakeGenericType(source.GetType(), source.GetType());
+                    .MakeGenericType(source.GetType(), typeof(Delegate[]), source.GetType());
 
-                myExec = dymMethod.CreateDelegate(delType);
-                _cachedILShallowClone.Add(key, myExec);
+                item = _cachedILDeepClone.Add(
+                    dymMethod.CreateDelegate(delType),
+                    null,
+                    returnType, source.GetType());
             }
-            return myExec.DynamicInvoke(source);
+            return item.Parser.DynamicInvoke(source, null);
         }
     }
 }

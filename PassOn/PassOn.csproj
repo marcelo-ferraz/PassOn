@@ -41,12 +41,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CloneAttribute.cs" />
+    <Compile Include="Collections\Cache.cs" />
+    <Compile Include="Collections\CacheItem.cs" />
     <Compile Include="Inspection.cs" />
     <Compile Include="Pass.cs" />
     <Compile Include="PassOnEngine.cs" />
     <Compile Include="PassOnMixins.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TypeMixins.cs" />
+    <Compile Include="Collections\Range.cs" />
+    <Compile Include="Utilities\Copy.cs" />
+    <Compile Include="Utilities\EmitMixins.cs" />
+    <Compile Include="Utilities\Get.cs" />
     <Compile Include="Utilities\IterateThrough.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

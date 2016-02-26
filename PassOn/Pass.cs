@@ -305,7 +305,11 @@ namespace PassOn
         /// <returns>Cloned object.</returns>
         public static R On<R>(object obj)
         {
-            return (R)PassOnEngine.CloneObjectWithILDeep(typeof(R), obj);
+            PassOnEngine.SaveMethod(typeof(R), obj);
+            
+            return obj.GetType().IsClass ?
+                (R)PassOnEngine.CloneObjectWithILDeep(typeof(R), obj) :
+                (R)PassOnEngine.CloneObjectWithILShallow(typeof(R), obj);
         }
 
         /// <summary>

@@ -27,7 +27,7 @@ namespace PassOn.Utilities
                 {
                     onlyRight(dest.Current);
                 }
-                else // i < left.Length
+                else // index < left.Length
                 {
                     onlyLeft(i);
                 }
@@ -118,7 +118,7 @@ namespace PassOn.Utilities
                 {
                     onlyLeft(src.Current);
                 }
-                else // i < right.Length
+                else // index < right.Length
                 {
                     onlyRight(i);                    
                 }

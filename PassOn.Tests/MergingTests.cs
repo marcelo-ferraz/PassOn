@@ -59,6 +59,16 @@ namespace PassOn.Tests
             Assert.AreEqual(@base.Int, mergedValue.Int);
             Assert.AreNotEqual(@base.GetHashCode(), mergedValue.GetHashCode());
         }
+
+        Delegate _passer { get; set; }
+        int oo;
+        private void CallDelegate(DifferentClass source, Delegate[] customPasses)
+        {
+            BaseClass destination = null;
+            oo = -225;
+            
+            destination.String = (string) customPasses[22].DynamicInvoke(new object[] { source });
+        }
     }
 }
 

@@ -6,8 +6,10 @@ namespace PassOn
     /// Used in combination with the CloneAttribute
     /// </summary>
     public enum Inspection
-    {     
+    {
+        Deep,
         Shallow,
-        Deep
+        Custom,
+        Ignore
     }
 }
