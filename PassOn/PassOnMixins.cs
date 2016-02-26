@@ -51,7 +51,7 @@ namespace PassOn
         /// <returns>Cloned object.</returns>
         public static object To(this object obj, Type returnType)
         {
-            return Pass.On(obj, returnType);            
+            return Pass.On(returnType, obj);            
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace PassOn
 
         public static object To(this object source, object destination)
         {
-            return Pass.On(source, destination);
+            return Pass.Onto(source, destination);
         }
 
         public static R[] ToArray<T, R>(this IEnumerable<T> source)

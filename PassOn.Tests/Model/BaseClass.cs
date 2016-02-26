@@ -16,7 +16,7 @@ namespace PassOn.Tests.Model
         public int Int { get; set; }
         public string String { get; set; }
         
-       // public List<int> Numbers { get; set; }
+        public List<int> Numbers { get; set; }
 
         public List<SubClass> List { get; set; }
         public List<SubClass> List2Array { get; set; }

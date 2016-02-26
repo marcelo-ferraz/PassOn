@@ -103,5 +103,53 @@ namespace PassOn.Utilities
                 Get.CorrectClonningMethod(source.PropertyType, destination.PropertyType));
             il.Emit(OpCodes.Call, destination.GetSetMethod());
         }
+        
+        internal static void EmitDefaultValue(this ILGenerator gen, Type type)
+        {
+            LocalBuilder local = null;
+            EmitDefaultValue(gen, type, ref local);
+        }
+
+        internal static void EmitDefaultValue(this ILGenerator gen, Type type, ref LocalBuilder local4Date)
+        {
+            if (type == typeof(string))
+            {
+                gen.Emit(OpCodes.Ldstr, string.Empty);
+                return;
+            }
+            if (type.IsInterface || !type.IsValueType)
+            {
+                gen.Emit(OpCodes.Ldnull);
+                return;
+            }
+
+            bool isInteger =
+                type == typeof(sbyte) || type == typeof(byte) ||
+                type == typeof(ushort) || type == typeof(short) ||
+                type == typeof(uint) || type == typeof(int) ||
+                type == typeof(ulong) || type == typeof(long);
+
+            if (type == typeof(DateTime) || type == typeof(TimeSpan))
+            {
+                if (local4Date == null)
+                { local4Date = gen.DeclareLocal(type); }
+
+                gen.Emit(OpCodes.Ldloca_S, local4Date);
+                gen.Emit(OpCodes.Initobj, type);
+                gen.Emit(OpCodes.Ldloc, local4Date);
+                return;
+            }
+
+            if (isInteger || type == typeof(decimal) || type == typeof(char) || type == typeof(bool))
+            {
+                gen.Emit(OpCodes.Ldc_I4_0);
+            }
+            else if (type == typeof(float) || type == typeof(double))
+            {
+                gen.Emit(OpCodes.Ldc_R4, 0.0);
+            }
+            else { throw new NotSupportedException(string.Format("The type {0} is not supporte, yet.", type)); }
+        }
+
     }
 }

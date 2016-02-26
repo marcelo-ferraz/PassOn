@@ -36,6 +36,9 @@ namespace PassOn.Tests
         [Test]
         public void CloneDifferentObjects()
         {
+            var destination =
+                Pass.ACollectionOf<int>.ToAListOf<int>(new List<int> { 1, 2, 3 });
+                        
             var date =
                 DateTime.Now;
 
@@ -44,7 +47,7 @@ namespace PassOn.Tests
                 Int = 1,
                 String = "something",
                 Date = date,
-                //Numbers = new List<int> { 1, 2, 3 }, // <-- problem there
+                Numbers = new List<int> { 1, 2, 3 }, // <-- problem there
                 List = new List<BaseClass.SubClass> { new BaseClass.SubClass() { Value = 1 } },
                 List2Array = new List<BaseClass.SubClass> { new BaseClass.SubClass() { Value = 2 } },
                 Array = new BaseClass.SubClass[] { new BaseClass.SubClass() { Value = 3 } },

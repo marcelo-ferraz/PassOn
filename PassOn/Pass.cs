@@ -23,7 +23,8 @@ namespace PassOn
 
                 foreach (var item in enumerable)
                 {
-                    result.Add(item.To<R>());
+                    result.Add((R) PassOnEngine.PassValue(typeof(R), item));
+                        //item.To<R>());
                 }
 
                 return result;
@@ -307,21 +308,7 @@ namespace PassOn
         {
             PassOnEngine.SaveMethod(typeof(R), obj);
             
-            return obj.GetType().IsClass ?
-                (R)PassOnEngine.CloneObjectWithILDeep(typeof(R), obj) :
-                (R)PassOnEngine.CloneObjectWithILShallow(typeof(R), obj);
-        }
-
-        /// <summary>
-        /// Passes on, clone, an object with Deep Cloning or with a custom strategy 
-        /// such as Shallow and/or Deep combined (use the CloneAttribute)
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
-        /// <returns></returns>
-        public static object On(object source, object destination)
-        {
-            return PassOnEngine.MergeWithILDeep(source, destination);
+            return (R)PassOnEngine.CloneObjectWithILDeep(typeof(R), obj);
         }
 
         /// <summary>
@@ -336,6 +323,18 @@ namespace PassOn
             return (cloneType == Inspection.Shallow) ?
                 (R)PassOnEngine.CloneObjectWithILShallow(typeof(R), obj) :
                 (R)PassOnEngine.CloneObjectWithILDeep(typeof(R), obj);
+        }
+
+        /// <summary>
+        /// Passes on, clone, an object with Deep Cloning or with a custom strategy 
+        /// such as Shallow and/or Deep combined (use the CloneAttribute)
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="destination"></param>
+        /// <returns></returns>
+        public static object Onto(object source, object destination)
+        {
+            return PassOnEngine.MergeWithILDeep(source, destination);
         }
 
         /// <summary>
