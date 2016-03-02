@@ -368,7 +368,7 @@ namespace PassOn
                 il.Emit(OpCodes.Ret);
 
                 var delType = typeof(Func<,,>)
-                    .MakeGenericType(source.GetType(), typeof(Delegate[]), source.GetType());
+                    .MakeGenericType(source.GetType(), typeof(Delegate[]), returnType);
 
                 item = _cachedILDeepClone.Add(
                     dymMethod.CreateDelegate(delType),

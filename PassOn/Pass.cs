@@ -23,8 +23,10 @@ namespace PassOn
 
                 foreach (var item in enumerable)
                 {
-                    result.Add((R) PassOnEngine.PassValue(typeof(R), item));
-                        //item.To<R>());
+                    result.Add(
+                        typeof(R).IsValueType ?
+                        (R) PassOnEngine.PassValue(typeof(R), item) :
+                        item.To<R>());
                 }
 
                 return result;
