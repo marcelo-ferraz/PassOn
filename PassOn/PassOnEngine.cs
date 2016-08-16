@@ -41,11 +41,13 @@ namespace PassOn
                         destProperty.PropertyType.IsAssignableFrom(srcProperty.PropertyType) ||
                         srcProperty.PropertyType.IsAssignableFrom(destProperty.PropertyType);
 
-                    var aliases = GetAliasesForProperty(srcProperty);
+                    var srcAliases = GetAliasesForProperty(srcProperty);
+                    var destAliases = GetAliasesForProperty(destProperty);
 
                     var namesAreEqual =
                         destProperty.Name.Equals(srcProperty.Name) ||
-                        (aliases != null && Array.IndexOf(aliases, destProperty.Name, 0) > -1);
+                        (srcAliases != null && Array.IndexOf(srcAliases, destProperty.Name, 0) > -1) ||                        
+                        (destAliases != null && Array.IndexOf(destAliases, srcProperty.Name, 0) > -1);
 
                     if ((ignoreType || isAssignable()) && namesAreEqual)
                     {
@@ -143,7 +145,7 @@ namespace PassOn
                 !source.IsArray)
             {
                 return typeof(Pass)
-                    .GetMethod("Onto", new Type[] { typeof(object) })
+                    .GetMethod("On", new Type[] { typeof(object) })
                     .MakeGenericMethod(destination);
             }
 
