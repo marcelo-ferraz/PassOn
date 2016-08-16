@@ -8,6 +8,7 @@ namespace PassOn
     public enum Inspection
     {     
         Shallow,
-        Deep
+        Deep,
+        Ignore
     }
 }

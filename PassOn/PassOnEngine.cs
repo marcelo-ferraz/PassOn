@@ -223,8 +223,12 @@ namespace PassOn
                     il,
                     (src, dest) =>
                     {
+                        var inspectionType = GetCloneTypeForProperty(src);
+
+                        if (inspectionType == Inspection.Ignore) { return; }    
+
                         if ((dest.PropertyType.IsAssignableFrom(src.PropertyType) &&
-                                         (GetCloneTypeForProperty(src) == Inspection.Shallow ||
+                                         (inspectionType == Inspection.Shallow ||
                                          src.PropertyType.IsValueType ||
                                          src.PropertyType == typeof(string))))
                         {
@@ -301,8 +305,12 @@ namespace PassOn
                 CopyProperties(returnType, source.GetType(), il,
                     (src, dest) =>
                     {
+                        var inspectionType = GetCloneTypeForProperty(src);
+
+                        if (inspectionType == Inspection.Ignore) { return; }
+
                         if ((dest.PropertyType.IsAssignableFrom(src.PropertyType) &&
-                            (GetCloneTypeForProperty(src) == Inspection.Shallow ||
+                            (inspectionType == Inspection.Shallow ||
                             src.PropertyType.IsValueType ||
                             src.PropertyType == typeof(string))))
                         {
