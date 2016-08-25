@@ -37,5 +37,6 @@ With the `Clone` attribute, you can set a couple of specific behaviours to the p
 
 | Option | Type | Description |
 |---------|---------|---------|
-| InspectionType | `PassOn.Inspection` (enum) | It changes on how the values will be passed, meaning: <ul><li>Shallow</li><li>Deep</li><li>Ignore</li></ul>
+| InspectionType | `PassOn.Inspection` (enum) | It changes on how the values will be passed, meaning: <ul><li>**Shallow**: a simple value passing and a reference passing when possible </li><li>**Deep**: all values are cloned to the destination</li><li>**Ignore**: nothing is passed</li></ul>    
+For more information, please refer to the section Inspections
 | Aliases | `System.String` | Any values added to this, either on source or destination will be taken into consideration when trying to matching the names. Always the first to match will be used.
