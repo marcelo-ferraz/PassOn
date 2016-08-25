@@ -51,7 +51,7 @@ namespace PassOn
         /// <returns>Cloned object.</returns>
         public static object To(this object obj, Type returnType)
         {
-            return Pass.On(obj, returnType);            
+            return Pass.On(returnType, obj);            
         }
 
         /// <summary>
