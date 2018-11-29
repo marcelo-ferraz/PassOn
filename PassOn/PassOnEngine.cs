@@ -316,7 +316,7 @@ namespace PassOn
                         {
                             EmitPassOn(il, cloneVariable, src, dest);
                         }//Inspection.Deep
-                        else if (src.PropertyType.IsClass)
+                        else if (src.PropertyType.IsClass || src.PropertyType.IsInterface)
                         {
                             CopyReferenceType(il, cloneVariable, src, dest);
                         }
