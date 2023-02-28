@@ -23,7 +23,7 @@ namespace PassOn
 
                 foreach (var item in enumerable)
                 {
-                    result.Add(item.To<R>());
+                    result.Add(item.To<T, R>());
                 }
 
                 return result;
@@ -44,7 +44,7 @@ namespace PassOn
 
                 for (int i = 0; i < array.Length; i++)
                 {
-                    result.Add(array[i].To<R>());
+                    result.Add(array[i].To<T, R>());
                 }
 
                 return result;
@@ -64,7 +64,7 @@ namespace PassOn
 
                 foreach (var item in source)
                 {
-                    result.Add(Pass.On<R>(item));
+                    result.Add(Pass.On<T, R>(item));
                 }
 
                 return result.ToArray();
@@ -86,7 +86,7 @@ namespace PassOn
 
                 for (int i = 0; i < array.Length; i++)
                 {
-                    result[i] = array[i].To<R>();
+                    result[i] = array[i].To<T,R>();
                 }
 
                 return result;
@@ -105,8 +105,8 @@ namespace PassOn
                 IterateThrough.Both(
                     source,
                     destination,
-                    both: (src, dest) => result.Add(Pass.Onto<R>(src, dest)),
-                    onlyLeft: (src) => result.Add(Pass.On<R>(src)),
+                    both: (src, dest) => result.Add(Pass.Onto<T, R>(src, dest)),
+                    onlyLeft: (src) => result.Add(Pass.On<T, R>(src)),
                     onlyRight: (dest) => result.Add(dest));
 
                 return result;
@@ -125,8 +125,8 @@ namespace PassOn
                 IterateThrough.Both(
                     source,
                     destination,
-                    both: (src, i) => result.Add(Pass.Onto<R>(src, destination[i])),
-                    onlyLeft: (src) => result.Add(Pass.On<R>(src)),
+                    both: (src, i) => result.Add(Pass.Onto<T, R>(src, destination[i])),
+                    onlyLeft: (src) => result.Add(Pass.On<T, R>(src)),
                     onlyRight: (i) => result.Add(destination[i]));
 
                 return result;
@@ -148,8 +148,8 @@ namespace PassOn
                 IterateThrough.Both(
                     source,
                     destination,
-                    both: (src, dest) => result.Add(Pass.Onto<R>(src, dest)),
-                    onlyLeft: (src) => result.Add(Pass.On<R>(src)),
+                    both: (src, dest) => result.Add(Pass.Onto<T, R>(src, dest)),
+                    onlyLeft: (src) => result.Add(Pass.On<T, R>(src)),
                     onlyRight: (dest) => result.Add(dest));
 
                 return result.ToArray();
@@ -168,8 +168,8 @@ namespace PassOn
                 IterateThrough.Both(
                     source,
                     destination,
-                    both: (src, i) => result.Add(Pass.Onto<R>(src, destination[i])),
-                    onlyLeft: (src) => result.Add(Pass.On<R>(src)),
+                    both: (src, i) => result.Add(Pass.Onto<T, R>(src, destination[i])),
+                    onlyLeft: (src) => result.Add(Pass.On<T, R>(src)),
                     onlyRight: (i) => result.Add(destination[i]));
 
                 return result.ToArray();
@@ -194,8 +194,8 @@ namespace PassOn
                 IterateThrough.Both(
                     source,
                     destination,
-                    both: i => result.Add(Pass.Onto<R>(source[i], destination[i])),
-                    onlyLeft: i => result.Add(Pass.On<R>(source[i])),
+                    both: i => result.Add(Pass.Onto<T, R>(source[i], destination[i])),
+                    onlyLeft: i => result.Add(Pass.On<T, R>(source[i])),
                     onlyRight: i => result.Add(destination[i]));
 
                 return result;
@@ -216,8 +216,8 @@ namespace PassOn
                 IterateThrough.Both(
                     source,
                     destination,
-                    both: (i, dest) => result.Add(Pass.Onto<R>(source[i], dest)),
-                    onlyLeft: i => result.Add(Pass.On<R>(source[i])),
+                    both: (i, dest) => result.Add(Pass.Onto<T, R>(source[i], dest)),
+                    onlyLeft: i => result.Add(Pass.On<T, R>(source[i])),
                     onlyRight: dest => result.Add(dest));
 
                 return result;
@@ -241,8 +241,8 @@ namespace PassOn
                 IterateThrough.Both(
                     source,
                     destination,
-                    both: i => result[i] = Pass.Onto<R>(source[i], destination[i]),
-                    onlyLeft: i => result[i] = Pass.On<R>(source[i]),
+                    both: i => result[i] = Pass.Onto<T, R>(source[i], destination[i]),
+                    onlyLeft: i => result[i] = Pass.On<T, R>(source[i]),
                     onlyRight: i => result[i] = destination[i]);
 
                 return result;
@@ -264,8 +264,8 @@ namespace PassOn
                 IterateThrough.Both(
                     source,
                     destination,
-                    both: (i, dest) => result.Add(Pass.Onto<R>(source[i], dest)),
-                    onlyLeft: i => result.Add(Pass.On<R>(source[i])),
+                    both: (i, dest) => result.Add(Pass.Onto<T, R>(source[i], dest)),
+                    onlyLeft: i => result.Add(Pass.On<T, R>(source[i])),
                     onlyRight: dest => result.Add(dest));
 
                 return result.ToArray();
@@ -278,9 +278,9 @@ namespace PassOn
         /// </summary>
         /// <param name="obj">Object to perform cloning on.</param>
         /// <returns>Cloned object.</returns>
-        public static object On(Type returnType, object obj)
+        public static Ret On<Src, Ret>(Src obj)
         {
-            return PassOnEngine.CloneObjectWithILDeep(returnType, obj);
+            return PassOnEngine.CloneObjectWithILDeep<Src, Ret>(obj);
         }
 
         /// <summary>
@@ -290,11 +290,11 @@ namespace PassOn
         /// <param name="inspectionType">Type of cloning</param>
         /// <returns>Cloned object.</returns>
         /// <exception cref="InvalidOperationException">When a wrong enum for cloningtype is passed.</exception>
-        public static object On(Type returnType, object obj, Inspection cloneType = Inspection.Deep)
+        public static Ret On<Src, Ret>(Src obj, Inspection cloneType = Inspection.Deep)
         {
             return (cloneType == Inspection.Shallow) ?
-                PassOnEngine.CloneObjectWithILShallow(returnType, obj) :
-                PassOnEngine.CloneObjectWithILDeep(returnType, obj);
+                PassOnEngine.CloneObjectWithILShallow<Src, Ret>(obj) :
+                PassOnEngine.CloneObjectWithILDeep<Src, Ret>(obj);
         }
 
         /// <summary>
@@ -303,9 +303,9 @@ namespace PassOn
         /// </summary>
         /// <param name="obj">Object to perform cloning on.</param>
         /// <returns>Cloned object.</returns>
-        public static R On<R>(object obj)
+        public static R On<R>(R obj)
         {
-            return (R)PassOnEngine.CloneObjectWithILDeep(typeof(R), obj);
+            return PassOnEngine.CloneObjectWithILDeep<R, R>(obj);
         }
 
         /// <summary>
@@ -315,7 +315,7 @@ namespace PassOn
         /// <param name="source"></param>
         /// <param name="destination"></param>
         /// <returns></returns>
-        public static object On(object source, object destination)
+        public static Ret On<Src, Ret>(Src source, Ret destination)
         {
             return PassOnEngine.MergeWithILDeep(source, destination);
         }
@@ -327,11 +327,11 @@ namespace PassOn
         /// <param name="inspectionType">Type of cloning</param>
         /// <returns>Cloned object.</returns>
         /// <exception cref="InvalidOperationException">When a wrong enum for cloningtype is passed.</exception>
-        public static R On<R>(object obj, Inspection cloneType = Inspection.Deep)
+        public static R On<R>(R obj, Inspection cloneType = Inspection.Deep)
         {
             return (cloneType == Inspection.Shallow) ?
-                (R)PassOnEngine.CloneObjectWithILShallow(typeof(R), obj) :
-                (R)PassOnEngine.CloneObjectWithILDeep(typeof(R), obj);
+                PassOnEngine.CloneObjectWithILShallow<R, R>(obj) :
+                PassOnEngine.CloneObjectWithILDeep<R, R>(obj);
         }
 
         /// <summary>
@@ -341,9 +341,9 @@ namespace PassOn
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns></returns>
-        public static R Onto<R>(object source, R destination)
+        public static R Onto<T, R>(T source, R destination)
         {
-            return (R)PassOnEngine.MergeWithILDeep(source, destination, typeof(R));
+            return PassOnEngine.MergeWithILDeep(source, destination);
         }
     }
 }

@@ -34,10 +34,11 @@ namespace PassOn
 
                 if (!method.IsGenericMethod && destType != null) { continue; }
 
-                if (sourceType == method.GetParameters()[0].ParameterType || method.GetParameters()[0].ParameterType.IsAssignableFrom(sourceType))
-                {
-                    return method.MakeGenericMethod(new[] { destType });
-                }
+                if (
+                    sourceType == method.GetParameters()[0].ParameterType
+                    || method.GetParameters()[0].ParameterType.IsAssignableFrom(sourceType)
+                )
+                { return method.MakeGenericMethod(new[] { destType }); }
             }
             return null;
         }

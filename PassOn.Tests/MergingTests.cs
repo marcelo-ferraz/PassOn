@@ -38,26 +38,38 @@ namespace PassOn.Tests
             Assert.AreEqual(inheritedHashCode, newValue.GetHashCode());
         }
 
-        [Test]
-        public void MergingWithNullParameter()
-        {
-            var date =
-                DateTime.Now;
 
+        [Test]
+        public void MergingWithNullDestinationWillReturnAnClonedDestination()
+        {
             var @base =
                 new BaseClass { Int = 1, String = "something" };
-
-            var inherited =
-                new InheritedClass { Date = date };
-
-            Assert.IsNotNull(Pass.Onto<DifferentClass>(null, null));
-            Assert.AreNotEqual(Pass.Onto(null, inherited).GetHashCode(), inherited.GetHashCode());
-
-            var mergedValue = Pass.Onto<InheritedClass>(@base, null);
+                     
+            var mergedValue = Pass.Onto<BaseClass, InheritedClass>(@base, null);
 
             Assert.AreEqual(@base.String, mergedValue.String);
             Assert.AreEqual(@base.Int, mergedValue.Int);
             Assert.AreNotEqual(@base.GetHashCode(), mergedValue.GetHashCode());
+        }
+
+        [Test]
+        public void MergingWithNullSourceWillReturnAnClonedDestination()
+        {
+            var expected =
+                new InheritedClass { Date = DateTime.Now };
+
+            var result = Pass
+                .Onto<BaseClass, InheritedClass>(null, expected);                
+
+            Assert.AreNotEqual(expected.GetHashCode(), result.GetHashCode());
+            Assert.AreEqual(expected.Date, result.Date);
+        }
+
+        [Test]
+        public void MergingWithNullsReturnsAnInstance()
+        {
+            var result = Pass.Onto<BaseClass, DifferentClass>(null, null);
+            Assert.IsNotNull(result);           
         }
     }
 }

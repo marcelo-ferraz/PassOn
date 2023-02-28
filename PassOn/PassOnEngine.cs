@@ -28,12 +28,12 @@ namespace PassOn
         private static DicClone _cachedILDeepClone = new DicClone();
         
 
-        private static void CopyProperties(Type returnType, Type sourceType, ILGenerator il, Action<PropertyInfo, PropertyInfo> whenSame, bool ignoreType = false)
+        private static void CopyProperties<Src, Ret>(ILGenerator il, Action<PropertyInfo, PropertyInfo> whenSame, bool ignoreType = false)
         {
             var destPropertys =
-                GetProperties(returnType);
+                GetProperties(typeof(Ret));
 
-            foreach (var srcProperty in GetProperties(sourceType))
+            foreach (var srcProperty in GetProperties(typeof(Src)))
             {
                 foreach (var destProperty in destPropertys)
                 {
@@ -172,65 +172,70 @@ namespace PassOn
                 cloneType.GetToListOfMethod(source, destType);
         }
 
-        internal static object MergeWithILDeep(object source, object destination, Type returnType = null)
+        internal static Ret MergeWithILDeep<Src, Ret>(Src source, Ret destination)
         {
-            if(source == null || destination == null || returnType == null)
-            {
-                if (returnType == null)
-                {
-                    if (source != null || destination != null)
-                    {
-                        returnType =
-                            destination == null ?
-                            destination.GetType() :
-                            source.GetType();
-                    }
-                    else { throw new ArgumentNullException("There are no means to infer the returned type. All arguments are null"); }
-                }
-                
-                if (destination == null)
-                { return CloneObjectWithILDeep(returnType, source); } 
-                
-                if (source == null) 
-                { return CloneObjectWithILDeep(returnType, destination);  }            
-            }
+            //if(source == null || destination == null || typeof(Ret) == null)
+            //{
+            //    if (typeof(Ret) == null)
+            //    {
+            //        if (source != null || destination != null)
+            //        {
+            //            typeof(Ret) =
+            //                destination == null ?
+            //                destination.GetType() :
+            //                typeof(Src);
+            //        }
+            //        else { throw new ArgumentNullException("There are no means to infer the returned type. All arguments are null"); }
+            //    }
 
-            Delegate myExec = null;
+            //    if (destination == null)
+            //    { return CloneObjectWithILDeep(typeof(Ret), source); } 
+
+            //    if (source == null) 
+            //    { return CloneObjectWithILDeep(typeof(Ret), destination);  }            
+            //}
+
+            if (destination == null)
+            { return CloneObjectWithILDeep<Src, Ret>(source); }
+
+            if (source == null)
+            { return CloneObjectWithILDeep<Ret, Ret>(destination); }
+
+            Delegate mapper = null;
 
             var key =
-                new Tuple<Type, Type, Type>(returnType, source.GetType(), destination.GetType());
+                new Tuple<Type, Type, Type>(typeof(Ret), typeof(Src), destination.GetType());
 
-            if (!_cachedILMerge.TryGetValue(key, out myExec))
+            if (!_cachedILMerge.TryGetValue(key, out mapper))
             {
                 // Create ILGenerator            
                 DynamicMethod dymMethod = new DynamicMethod(
                     "DoDeepMerge",
                     destination.GetType(),
-                    new Type[] { source.GetType(), destination.GetType() },
+                    new Type[] { typeof(Src), destination.GetType() },
                     Assembly.GetExecutingAssembly().ManifestModule,
                     true);
 
                 ILGenerator il = dymMethod.GetILGenerator();
 
-                LocalBuilder cloneVariable = il.DeclareLocal(returnType);
+                LocalBuilder cloneVariable = il.DeclareLocal(typeof(Ret));
 
                 il.Emit(OpCodes.Ldarg_1);
                 il.Emit(OpCodes.Stloc, cloneVariable);
 
-                CopyProperties(
-                    destination.GetType(), 
-                    source.GetType(), 
-                    il,
+                CopyProperties<Src, Ret>(il,
                     (src, dest) =>
                     {
                         var inspectionType = GetCloneTypeForProperty(src);
 
                         if (inspectionType == Inspection.Ignore) { return; }    
 
-                        if ((dest.PropertyType.IsAssignableFrom(src.PropertyType) &&
-                                         (inspectionType == Inspection.Shallow ||
-                                         src.PropertyType.IsValueType ||
-                                         src.PropertyType == typeof(string))))
+                        if (dest.PropertyType.IsAssignableFrom(src.PropertyType) 
+                            && (
+                                inspectionType == Inspection.Shallow
+                                || src.PropertyType.IsValueType
+                                || src.PropertyType == typeof(string)
+                        ))
                         {
                             EmitPassOn(il, cloneVariable, src, dest);
                         }//Inspection.Deep
@@ -244,12 +249,12 @@ namespace PassOn
                 il.Emit(OpCodes.Ret);
 
                 var delType = typeof(Func<,,>)
-                    .MakeGenericType(source.GetType(), destination.GetType(), returnType ?? destination.GetType());
+                    .MakeGenericType(typeof(Src), destination.GetType(), typeof(Ret) ?? destination.GetType());
 
-                myExec = dymMethod.CreateDelegate(delType);
-                _cachedILMerge.Add(key, myExec);
+                mapper = dymMethod.CreateDelegate(delType);
+                _cachedILMerge.Add(key, mapper);
             }
-            return myExec.DynamicInvoke(source, destination);
+            return ((Func<Src, Ret, Ret>)mapper)(source, destination);
         }
 
         /// <summary>
@@ -259,36 +264,23 @@ namespace PassOn
         /// </summary>
         /// <param name="left">Type of object to clone</param>
         /// <returns>Cloned object (deeply cloned)</returns>
-        internal static object CloneObjectWithILDeep(Type returnType, object source)
+        internal static Ret CloneObjectWithILDeep<Src, Ret>(Src source)
         {
-            if (source == null || returnType == null)
-            {
-                if (returnType == null)
-                {
-                    if (source == null)
-                    {
-                        throw new ArgumentNullException("There are no means to infer the returned type. All arguments are null");                        
-                    }
-
-                    returnType = source.GetType();
-                }
-                                
-                if (source == null)
-                { return Activator.CreateInstance(returnType); }
-            }
+            if (source == null)
+            { return (Ret) Activator.CreateInstance(typeof(Ret)); }
 
             var key = new Tuple<Type, Type>(
-                returnType, source.GetType());
+                typeof(Ret), typeof(Src));
 
-            Delegate myExec = null;
+            Delegate mapper = null;
 
-            if (!_cachedILDeepClone.TryGetValue(key, out myExec))
+            if (!_cachedILDeepClone.TryGetValue(key, out mapper))
             {
                 // Create ILGenerator            
                 var dymMethod = new DynamicMethod(
                     "DoDeepClone",
-                    returnType,
-                    new Type[] { source.GetType() },
+                    typeof(Ret),
+                    new Type[] { typeof(Src) },
                     Assembly.GetExecutingAssembly().ManifestModule,
                     true);
 
@@ -296,13 +288,13 @@ namespace PassOn
                     dymMethod.GetILGenerator();
 
                 var cloneVariable =
-                    il.DeclareLocal(returnType);
+                    il.DeclareLocal(typeof(Ret));
 
-                Construct(returnType, il);
+                Construct(typeof(Ret), il);
 
                 il.Emit(OpCodes.Stloc, cloneVariable);
 
-                CopyProperties(returnType, source.GetType(), il,
+                CopyProperties<Src, Ret>(il,
                     (src, dest) =>
                     {
                         var inspectionType = GetCloneTypeForProperty(src);
@@ -326,12 +318,12 @@ namespace PassOn
                 il.Emit(OpCodes.Ret);
 
                 var delType = typeof(Func<,>)
-                    .MakeGenericType(source.GetType(), returnType);
+                    .MakeGenericType(typeof(Src), typeof(Ret));
 
-                myExec = dymMethod.CreateDelegate(delType);
-                _cachedILDeepClone.Add(key, myExec);
+                mapper = dymMethod.CreateDelegate(delType);
+                _cachedILDeepClone.Add(key, mapper);
             }
-            return myExec.DynamicInvoke(source);
+            return ((Func<Src, Ret>)mapper)(source);
         }
 
         /// <summary>    
@@ -342,46 +334,33 @@ namespace PassOn
         /// <typeparam name="T">Type of object to clone</typeparam>    
         /// <param name="left">Object to clone</param>    
         /// <returns>Cloned object (shallow)</returns>    
-        internal static object CloneObjectWithILShallow(Type returnType, object source)
+        internal static Ret CloneObjectWithILShallow<Src, Ret>(Src source)
         {
-            Delegate myExec = null;
+            Delegate mapper = null;
 
-            if (source == null || returnType == null)
-            {
-                if (returnType == null)
-                {
-                    if (source == null)
-                    {
-                        throw new ArgumentNullException("There are no means to infer the returned type. All arguments are null");
-                    }
-
-                    returnType = source.GetType();
-                }
-
-                if (source == null)
-                { return Activator.CreateInstance(returnType); }
-            }
+            if (source == null)
+            { return (Ret)Activator.CreateInstance(typeof(Ret)); }
 
             var key = new Tuple<Type, Type>(
-                returnType, source.GetType());
+                typeof(Ret), typeof(Src));
 
-            if (!_cachedILShallowClone.TryGetValue(key, out myExec))
+            if (!_cachedILShallowClone.TryGetValue(key, out mapper))
             {
                 var dymMethod =
-                    new DynamicMethod("DoShallowClone", returnType, new Type[] { source.GetType() }, Assembly.GetExecutingAssembly().ManifestModule, true);
+                    new DynamicMethod("DoShallowClone", typeof(Ret), new Type[] { typeof(Src) }, Assembly.GetExecutingAssembly().ManifestModule, true);
 
                 var cInfo =
-                    returnType.GetConstructor(new Type[] { });
+                    typeof(Ret).GetConstructor(new Type[] { });
                 var il =
                     dymMethod.GetILGenerator();
 
                 var local =
-                    il.DeclareLocal(source.GetType());
+                    il.DeclareLocal(typeof(Src));
 
                 il.Emit(OpCodes.Newobj, cInfo);
                 il.Emit(OpCodes.Stloc_0);
 
-                CopyProperties(returnType, source.GetType(), il,
+                CopyProperties<Src, Ret>(il,
                     (src, dest) =>
                     {
                         il.Emit(OpCodes.Ldloc_0);
@@ -394,12 +373,12 @@ namespace PassOn
                 il.Emit(OpCodes.Ret);
 
                 var delType = typeof(Func<,>)
-                    .MakeGenericType(source.GetType(), source.GetType());
+                    .MakeGenericType(typeof(Src), typeof(Src));
 
-                myExec = dymMethod.CreateDelegate(delType);
-                _cachedILShallowClone.Add(key, myExec);
+                mapper = dymMethod.CreateDelegate(delType);
+                _cachedILShallowClone.Add(key, mapper);
             }
-            return myExec.DynamicInvoke(source);
+            return ((Func<Src, Ret>)mapper)(source);
         }
     }
 }

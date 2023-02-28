@@ -37,7 +37,7 @@ namespace PassOn
         /// </summary>
         /// <param name="obj">Object to perform cloning on.</param>
         /// <returns>Cloned object.</returns>
-        public static R To<R>(this object obj)            
+        public static R To<R>(this R obj)            
         {
             return Pass.On<R>(obj);
         }
@@ -61,9 +61,9 @@ namespace PassOn
         /// <param name="inspectionType">Type of cloning</param>
         /// <returns>Cloned object.</returns>
         /// <exception cref="InvalidOperationException">When a wrong enum for cloningtype is passed.</exception>
-        public static R To<R>(this object obj, Inspection cloneType = Inspection.Deep)            
+        public static R To<R>(this R obj, Inspection cloneType = Inspection.Deep)            
         {
-            return Pass.On<R>(obj, cloneType); 
+            return Pass.On<R, R>(obj, cloneType); 
         }
 
         /// <summary>
@@ -73,9 +73,9 @@ namespace PassOn
         /// <param name="inspectionType">Type of cloning</param>
         /// <returns>Cloned object.</returns>
         /// <exception cref="InvalidOperationException">When a wrong enum for cloningtype is passed.</exception>
-        public static object To(this object obj, Type returnType, Inspection cloneType = Inspection.Deep)
+        public static R To<T, R>(this T obj, Inspection cloneType = Inspection.Deep)
         {
-            return Pass.On(returnType, obj, cloneType); 
+            return Pass.On<T, R>(obj, cloneType); 
         }
 
         public static T To<T>(this T source, T destination)            
@@ -85,7 +85,7 @@ namespace PassOn
 
         public static R To<T, R>(this T source, R destination)
         {
-            return Pass.Onto<R>(source, destination);
+            return Pass.Onto<T, R>(source, destination);
         }
 
         public static object To(this object source, object destination)

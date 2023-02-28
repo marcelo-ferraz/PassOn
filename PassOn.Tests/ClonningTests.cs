@@ -18,7 +18,7 @@ namespace PassOn.Tests
                 new BaseClass { Int = 1, String = "something" };
             
             var newValue =
-                Pass.On<BaseClass>(@base);
+                Pass.On(@base);
 
             Assert.AreEqual(@base.String, newValue.String);
             Assert.AreEqual(@base.Int, newValue.Int);
@@ -28,8 +28,15 @@ namespace PassOn.Tests
         [Test]
         public void ClonningWithNullParameter()
         {
-            Assert.IsNotNull(Pass.On<BaseClass>(null));
-            Assert.IsNotNull(Pass.On<BaseClass>(null, Inspection.Shallow));
+            var result = Pass.On<BaseClass>(null);
+            Assert.IsNotNull(result);            
+        }
+
+        [Test]
+        public void ShallowClonningWithNullParameter()
+        {
+            var result = Pass.On<BaseClass>(null, Inspection.Shallow);
+            Assert.IsNotNull(result);
         }
 
         [Test]
@@ -54,7 +61,7 @@ namespace PassOn.Tests
                 inherited.GetHashCode();
 
             var diffValue =
-                Pass.On<DifferentClass>(inherited);
+                Pass.On<InheritedClass, DifferentClass>(inherited);
 
             Assert.False(string.IsNullOrEmpty(diffValue.String));
             Assert.AreEqual(inherited.String, diffValue.String);
