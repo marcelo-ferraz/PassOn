@@ -8,7 +8,7 @@
             [MapStrategy(Alias = "Oid")]
             public Guid Id { get; set; }
 
-            [MapStrategy(Alias = "Message")]
+            [MapStrategy("Message")]
             public string? Text { get; set; }
         }
 

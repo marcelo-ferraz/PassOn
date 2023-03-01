@@ -11,6 +11,11 @@ namespace PassOn
         public const Strategy DEFAULT_TYPE = Strategy.Deep;
 
         public MapStrategyAttribute() { }
+        
+        public MapStrategyAttribute(params string[] aliases)
+        {
+            Aliases = aliases;
+        }
 
         public MapStrategyAttribute(Strategy type = DEFAULT_TYPE, params string[] aliases)
         {

@@ -9,8 +9,7 @@ namespace PassOn.Tests
         [SetUp]
         public void SetUp()
         {
-            var ee = Pass.On<InheritedClass>(new InheritedClass());
-            // PassOnEngine.ClearCache();
+            PassOnEngine.ClearCache();
         }
 
         [Test]

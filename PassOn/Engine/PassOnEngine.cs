@@ -165,6 +165,7 @@ namespace PassOn
                 mapper = dymMethod.CreateDelegate(delType);
                 _cachedILDeepClone.TryAdd(key, mapper);
             }
+
             return ((Func<Source, Target>)mapper)(source);
         }
 
