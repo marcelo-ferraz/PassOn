@@ -290,9 +290,9 @@ namespace PassOn
         /// <param name="inspectionType">Type of cloning</param>
         /// <returns>Cloned object.</returns>
         /// <exception cref="InvalidOperationException">When a wrong enum for cloningtype is passed.</exception>
-        public static Ret On<Src, Ret>(Src obj, Inspection cloneType = Inspection.Deep)
+        public static Ret On<Src, Ret>(Src obj, Strategy cloneType = Strategy.Deep)
         {
-            return (cloneType == Inspection.Shallow) ?
+            return (cloneType == Strategy.Shallow) ?
                 PassOnEngine.CloneObjectWithILShallow<Src, Ret>(obj) :
                 PassOnEngine.CloneObjectWithILDeep<Src, Ret>(obj);
         }
@@ -327,9 +327,9 @@ namespace PassOn
         /// <param name="inspectionType">Type of cloning</param>
         /// <returns>Cloned object.</returns>
         /// <exception cref="InvalidOperationException">When a wrong enum for cloningtype is passed.</exception>
-        public static R On<R>(R obj, Inspection cloneType = Inspection.Deep)
+        public static R On<R>(R obj, Strategy cloneType = Strategy.Deep)
         {
-            return (cloneType == Inspection.Shallow) ?
+            return (cloneType == Strategy.Shallow) ?
                 PassOnEngine.CloneObjectWithILShallow<R, R>(obj) :
                 PassOnEngine.CloneObjectWithILDeep<R, R>(obj);
         }

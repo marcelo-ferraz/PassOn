@@ -5,7 +5,7 @@ namespace PassOn
 {
     public static class TypeMixins
     {
-        public static MethodInfo GetToListOfMethod(this Type type, Type sourceType, Type destType)
+        internal static MethodInfo GetToListOfMethod(this Type type, Type sourceType, Type destType)
         {
             return GetMethod(
                 type,
@@ -14,7 +14,7 @@ namespace PassOn
                 destType);
         }
 
-        public static MethodInfo GetToArrayOfMethod(this Type type, Type sourceType, Type destType)
+        internal static MethodInfo GetToArrayOfMethod(this Type type, Type sourceType, Type destType)
         {
             return GetMethod(
                 type,
@@ -23,7 +23,7 @@ namespace PassOn
                 destType);
         }
 
-        public static MethodInfo GetMethod(this Type type,
+        internal static MethodInfo GetMethod(this Type type,
             string name,
             Type sourceType,
             Type destType)

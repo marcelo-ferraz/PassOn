@@ -61,7 +61,7 @@ namespace PassOn
         /// <param name="inspectionType">Type of cloning</param>
         /// <returns>Cloned object.</returns>
         /// <exception cref="InvalidOperationException">When a wrong enum for cloningtype is passed.</exception>
-        public static R To<R>(this R obj, Inspection cloneType = Inspection.Deep)            
+        public static R To<R>(this R obj, Strategy cloneType = Strategy.Deep)            
         {
             return Pass.On<R, R>(obj, cloneType); 
         }
@@ -73,7 +73,7 @@ namespace PassOn
         /// <param name="inspectionType">Type of cloning</param>
         /// <returns>Cloned object.</returns>
         /// <exception cref="InvalidOperationException">When a wrong enum for cloningtype is passed.</exception>
-        public static R To<T, R>(this T obj, Inspection cloneType = Inspection.Deep)
+        public static R To<T, R>(this T obj, Strategy cloneType = Strategy.Deep)
         {
             return Pass.On<T, R>(obj, cloneType); 
         }

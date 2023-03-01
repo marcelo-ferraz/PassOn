@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PassOn.Tests.Model
+namespace PassOn.Tests.Models
 {
     public class BaseClass
     {
@@ -15,7 +15,7 @@ namespace PassOn.Tests.Model
 
         public int Int { get; set; }
         public string String { get; set; }
-        [Clone(Inspection.Shallow)]
+        [MapStrategy(Strategy.Shallow)]
         public List<int> Numbers { get; set; }
 
         public List<SubClass> List { get; set; }

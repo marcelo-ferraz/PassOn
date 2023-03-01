@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PassOn.Tests.Model
+namespace PassOn.Tests.Models
 {
     public class InheritedClass : BaseClass
     {
-        [Clone(Aliases = new[] { "Data" })]
+        [MapStrategy(Aliases = new[] { "Data" })]
         public DateTime Date { get; set; }
 
     }

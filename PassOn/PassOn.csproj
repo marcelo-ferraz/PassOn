@@ -42,12 +42,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CloneAttribute.cs" />
-    <Compile Include="Inspection.cs" />
+    <Compile Include="Engine\Extensions\CopyExtensions.cs" />
+    <Compile Include="Engine\Extensions\TypeExtensions.cs" />
+    <Compile Include="Engine\Match.cs" />
+    <Compile Include="Engine\Extensions\StrategyExtensions.cs" />
+    <Compile Include="Engine\Extensions\AssignmentExtensions.cs" />
+    <Compile Include="Engine\Extensions\PropertyInfoExtensions.cs" />
+    <Compile Include="MapStrategyAttribute.cs" />
+    <Compile Include="CouldNotMatchCustomMapException.cs" />
+    <Compile Include="Strategy.cs" />
     <Compile Include="Pass.cs" />
-    <Compile Include="PassOnEngine.cs" />
+    <Compile Include="Engine\PassOnEngine.cs" />
     <Compile Include="PassOnMixins.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TooManyArgsCustomMapException.cs" />
     <Compile Include="TypeMixins.cs" />
     <Compile Include="Utilities\IterateThrough.cs" />
   </ItemGroup>

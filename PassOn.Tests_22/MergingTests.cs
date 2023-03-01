@@ -1,16 +1,16 @@
-﻿using PassOn.Tests.Models;
+﻿using NUnit.Framework;
+using PassOn.Tests.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace PassOn.Tests
 {
     [TestFixture]
     public class MergingTests
     {
-        [TearDown]
-        public void TearDown()
-        {
-            PassOnEngine.ClearCache();
-        }
-
         [Test]
         public void MergingTest()
         {
@@ -32,10 +32,10 @@ namespace PassOn.Tests
                 Pass.Onto(@base, inherited);
 
             Assert.False(string.IsNullOrEmpty(inherited.String));
-            Assert.That(inherited.Int, Is.EqualTo(1));
-            Assert.That(inherited.Date, Is.EqualTo(date));
-            Assert.That(inherited.GetHashCode(), Is.EqualTo(inheritedHashCode));
-            Assert.That(newValue.GetHashCode(), Is.EqualTo(inheritedHashCode));
+            Assert.AreEqual(1, inherited.Int);
+            Assert.AreEqual(date, inherited.Date);
+            Assert.AreEqual(inheritedHashCode, inherited.GetHashCode());
+            Assert.AreEqual(inheritedHashCode, newValue.GetHashCode());
         }
 
 
@@ -47,9 +47,9 @@ namespace PassOn.Tests
                      
             var mergedValue = Pass.Onto<BaseClass, InheritedClass>(@base, null);
 
-            Assert.That(mergedValue.String, Is.EqualTo(@base.String));
-            Assert.That(mergedValue.Int, Is.EqualTo(@base.Int));
-            Assert.That(mergedValue.GetHashCode(), Is.Not.EqualTo(@base.GetHashCode()));
+            Assert.AreEqual(@base.String, mergedValue.String);
+            Assert.AreEqual(@base.Int, mergedValue.Int);
+            Assert.AreNotEqual(@base.GetHashCode(), mergedValue.GetHashCode());
         }
 
         [Test]
@@ -61,8 +61,8 @@ namespace PassOn.Tests
             var result = Pass
                 .Onto<BaseClass, InheritedClass>(null, expected);                
 
-            Assert.That(result.GetHashCode(), Is.Not.EqualTo(expected.GetHashCode()));
-            Assert.That(result.Date, Is.EqualTo(expected.Date));
+            Assert.AreNotEqual(expected.GetHashCode(), result.GetHashCode());
+            Assert.AreEqual(expected.Date, result.Date);
         }
 
         [Test]

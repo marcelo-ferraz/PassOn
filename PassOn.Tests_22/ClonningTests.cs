@@ -1,18 +1,16 @@
-﻿using PassOn.Tests.Models;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿using NUnit.Framework;
+using PassOn.Tests.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace PassOn.Tests
 {
     [TestFixture]
     public class ClonningTests
     {
-        [SetUp]
-        public void SetUp()
-        {
-            var ee = Pass.On<InheritedClass>(new InheritedClass());
-            // PassOnEngine.ClearCache();
-        }
-
         [Test]
         public void ClonningTest()
         {
@@ -22,9 +20,9 @@ namespace PassOn.Tests
             var newValue =
                 Pass.On(@base);
 
-            Assert.That(newValue.String, Is.EqualTo(@base.String));
-            Assert.That(newValue.Int, Is.EqualTo(@base.Int));
-            Assert.That(newValue.GetHashCode(), Is.Not.EqualTo(@base.GetHashCode()));
+            Assert.AreEqual(@base.String, newValue.String);
+            Assert.AreEqual(@base.Int, newValue.Int);
+            Assert.AreNotEqual(@base.GetHashCode(), newValue.GetHashCode());
         }
 
         [Test]
@@ -41,7 +39,6 @@ namespace PassOn.Tests
             Assert.IsNotNull(result);
         }
 
-
         [Test]
         public void CloneDifferentObjects()
         {
@@ -57,15 +54,18 @@ namespace PassOn.Tests
                 List = new List<BaseClass.SubClass> { new BaseClass.SubClass() { Value = 1 } },
                 List2Array = new List<BaseClass.SubClass> { new BaseClass.SubClass() { Value = 2 } },
                 Array = new BaseClass.SubClass[] { new BaseClass.SubClass() { Value = 3 } },
-                Array2List = new BaseClass.SubClass[] { new BaseClass.SubClass() { Value = 4 } },
+                Array2List = new BaseClass.SubClass[] { new BaseClass.SubClass() { Value = 4 } }, 
             };
+
+            var inheritedHashCode =
+                inherited.GetHashCode();
 
             var diffValue =
                 Pass.On<InheritedClass, DifferentClass>(inherited);
 
             Assert.False(string.IsNullOrEmpty(diffValue.String));
-            Assert.That(diffValue.String, Is.EqualTo(inherited.String));
-            Assert.That(diffValue.Data, Is.EqualTo(inherited.Date));
+            Assert.AreEqual(inherited.String, diffValue.String);
+            Assert.AreEqual(date, diffValue.Data);
         }
     }
 }
