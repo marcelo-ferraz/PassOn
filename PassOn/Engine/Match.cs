@@ -18,24 +18,47 @@ namespace PassOn.EngineExtensions
 
             foreach (var srcProperty in GetProperties(typeof(Source)))
             {
-                var srcAliases = srcProperty.GetAliases();
+                var srcStrategy = srcProperty.GetCloneStrategy();
+                
+                var srcAliases = srcStrategy?.Aliases;
 
                 srcAliases = srcAliases?.Length > 0 
                     ? srcAliases
                     : new[] { srcProperty.Name };
 
                 foreach (var destProperty in destProperties)
-                {                       
-                    var destAliases = destProperty.GetAliases() ?? new[] { destProperty.Name };
+                {
+                    var destStrategy = destProperty.GetCloneStrategy();
+                    var destAliases = destStrategy?.Aliases;
+
+                    destAliases = destAliases?.Length > 0
+                        ? destAliases
+                        : new[] { destProperty.Name };
 
                     var nameOrAliasMatch = destAliases
                         .Any(dest => Array.IndexOf(srcAliases, dest, 0) > -1);
 
                     if (!nameOrAliasMatch) { continue; }
 
+                    var srcType = srcProperty.PropertyType;
+                    var destType = destProperty.PropertyType;
+
+                    if (srcStrategy?.Type == Strategy.CustomMap) {
+                        srcType = StrategyUtilities
+                            .GetMapperInfo<Source>(srcStrategy.Mapper, srcProperty.Name)
+                            .ReturnType;
+                    }
+
+                    if (destStrategy?.Type == Strategy.CustomMap) {
+                        var mapper = StrategyUtilities
+                            .GetMapperInfo<Target>(destStrategy.Mapper, destProperty.Name);
+
+                        destType = mapper.GetParameters()[0].ParameterType;                            
+                    } 
+
                     var isAssignable = ignoreType 
-                        || destProperty.PropertyType.IsAssignableFrom(srcProperty.PropertyType)
-                        || srcProperty.PropertyType.IsAssignableFrom(destProperty.PropertyType);
+                        || destType.IsAssignableFrom(srcType)
+                        || srcType.IsAssignableFrom(destType);
 
                     if (isAssignable) 
                     { whenMatch(srcProperty, destProperty); }                    

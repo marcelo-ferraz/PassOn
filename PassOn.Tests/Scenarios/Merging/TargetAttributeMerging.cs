@@ -1,7 +1,7 @@
-﻿namespace PassOn.Tests.Scenarios
+﻿namespace PassOn.Tests.Scenarios.Merging
 {
     [TestFixture]
-    internal class TargetAttributeMapping
+    internal class TargetAttributeMerging
     {
         class Source
         {
@@ -29,15 +29,25 @@
             var initialId = Guid.NewGuid();
             var initialText = Utilities.RandomString();
             var initialMessage = Utilities.RandomString();
+            var otherId = Guid.NewGuid();
+            var otherText = Utilities.RandomString();
+            var otherMessage = Utilities.RandomString();
 
-            var dto = new Source
+            var src = new Source
             {
                 Id = initialId,
                 Text = initialText,
                 Message = initialMessage,
             };
 
-            var result = dto.To<Source, Target>();
+            var target = new Target
+            {
+                Oid = otherId,
+                Text = otherText,
+                Message = otherMessage,
+            };
+
+            var result = src.To(target);
 
             Assert.That(result.Oid, Is.EqualTo(initialId));
             Assert.That(result.Message, Is.EqualTo(initialText));

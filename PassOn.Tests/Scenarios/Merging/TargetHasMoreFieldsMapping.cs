@@ -1,4 +1,4 @@
-﻿namespace PassOn.Tests.Scenarios
+﻿namespace PassOn.Tests.Scenarios.Merging
 {
     [TestFixture]
     internal class TargetHasMoreFieldsMapping
@@ -28,6 +28,13 @@
         {
             var initialId = Guid.NewGuid();
             var initialText = Utilities.RandomString();
+            
+            var otherId = Guid.NewGuid();
+            var otherText = Utilities.RandomString();
+            
+            var targetNullableNumber = Utilities.NextRandomInt();
+            var targetNumber = Utilities.NextRandomInt();
+            var targetDate = DateTime.Now;
 
             var dto = new Source
             {
@@ -35,13 +42,22 @@
                 Text = initialText,
             };
 
-            var result = dto.To<Source, Target>();
+            var target = new Target
+            {
+                Id = otherId,
+                Text = otherText,
+                NullableNumber = targetNullableNumber,
+                Number = targetNumber,
+                Date = targetDate,
+            };
+
+            var result = dto.To(target);
 
             Assert.That(result.Id, Is.EqualTo(initialId));
             Assert.That(result.Text, Is.EqualTo(initialText));
-            Assert.IsNull(result.Date);
-            Assert.IsNull(result.NullableNumber);
-            Assert.That(result.Number, Is.EqualTo(0));            
+            Assert.That(result.Date, Is.EqualTo(targetDate));
+            Assert.That(result.NullableNumber, Is.EqualTo(targetNullableNumber));
+            Assert.That(result.Number, Is.EqualTo(targetNumber));        
         }
 
         [TearDown]

@@ -1,4 +1,4 @@
-﻿namespace PassOn.Tests.Scenarios
+﻿namespace PassOn.Tests.Scenarios.Mapping
 {
     [TestFixture]
     internal class TargetCustomMapping
@@ -20,12 +20,12 @@
 
             public void MapOid(object obj)
             {
-                this.Oid = obj.ToString() ?? String.Empty;
+                Oid = obj.ToString() ?? string.Empty;
             }
 
             public void MapText(object obj)
             {
-                this.Message = obj.ToString() ?? String.Empty;
+                Message = obj.ToString() ?? string.Empty;
             }
         }
 
@@ -36,13 +36,13 @@
             var initialId = Guid.NewGuid();
             var initialText = Utilities.RandomString();
 
-            var dto = new Source
+            var src = new Source
             {
                 Id = initialId,
                 Text = initialText,
             };
 
-            var result = dto.To<Source, Target>();
+            var result = src.To<Source, Target>();
 
             Assert.That(result.Oid, Is.EqualTo(initialId.ToString()));
             Assert.That(result.Message, Is.EqualTo(initialText));

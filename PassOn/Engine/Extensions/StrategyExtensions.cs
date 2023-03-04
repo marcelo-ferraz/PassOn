@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace PassOn.EngineExtensions
 {
-    internal static class StrategyExtensions
+    internal static class StrategyUtilities
     {
-        private static MethodInfo GetMapperInfo<T>(
+        public static MethodInfo GetMapperInfo<T>(
             string mapperName,
             string propName
         )
