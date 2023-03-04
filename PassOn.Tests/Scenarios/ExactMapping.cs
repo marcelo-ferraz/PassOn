@@ -1,25 +1,19 @@
 ﻿namespace PassOn.Tests.Scenarios
 {
     [TestFixture]
-    internal class TargetAttributeMapping
+    internal class ExactMapping
     {
         class Source
         {
             public Guid Id { get; set; }
             public string? Text { get; set; }
-            public string? Message { get; set; }
         }
 
         class Target
         {
-            [MapStrategy(Alias = "Id")]
-            public Guid Oid { get; set; }
+            public Guid Id { get; set; }
 
-            [MapStrategy("Message")]
             public string? Text { get; set; }
-
-            [MapStrategy("Text")]
-            public string? Message { get; set; }
         }
 
 
@@ -28,20 +22,17 @@
         {
             var initialId = Guid.NewGuid();
             var initialText = Utilities.RandomString();
-            var initialMessage = Utilities.RandomString();
 
             var dto = new Source
             {
                 Id = initialId,
                 Text = initialText,
-                Message = initialMessage,
             };
 
             var result = dto.To<Source, Target>();
 
-            Assert.That(result.Oid, Is.EqualTo(initialId));
-            Assert.That(result.Message, Is.EqualTo(initialText));
-            Assert.That(result.Text, Is.EqualTo(initialMessage));
+            Assert.That(result.Id, Is.EqualTo(initialId));
+            Assert.That(result.Text, Is.EqualTo(initialText));
         }
 
         [TearDown]

@@ -13,5 +13,10 @@
                 .Select(_ => chars[random.Next(chars.Length)]
             ).ToArray());
         }
+
+        public static int NextRandomInt(int min = 0, int max = 100)
+        {
+            return random.Next(min, max);
+        }
     }
 }

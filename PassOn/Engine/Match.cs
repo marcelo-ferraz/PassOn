@@ -19,31 +19,42 @@ namespace PassOn.EngineExtensions
 
         internal static void Properties<Source, Target>(Action<PropertyInfo, PropertyInfo> whenMatch, bool ignoreType = false)
         {
-            var destPropertys =
+            var destProperties =
                 GetProperties(typeof(Target));
 
             foreach (var srcProperty in GetProperties(typeof(Source)))
             {
-                foreach (var destProperty in destPropertys)
-                {
-                    Func<bool> isAssignable = () =>
-                        destProperty.PropertyType.IsAssignableFrom(srcProperty.PropertyType) ||
-                        srcProperty.PropertyType.IsAssignableFrom(destProperty.PropertyType);
+                var srcAliases = srcProperty.GetAliases();
 
-                    var srcAliases = srcProperty.GetAliases();
-                    var destAliases = destProperty.GetAliases();
+                srcAliases = srcAliases?.Length > 0 
+                    ? srcAliases
+                    : new[] { srcProperty.Name };
 
-                    var namesMatch =
-                        destProperty.Name.Equals(srcProperty.Name) ||
-                        (srcAliases != null && Array.IndexOf(srcAliases, destProperty.Name, 0) > -1) ||
-                        (destAliases != null && Array.IndexOf(destAliases, srcProperty.Name, 0) > -1);
+                foreach (var destProperty in destProperties)
+                {                       
+                    var destAliases = destProperty.GetAliases() ?? new[] { destProperty.Name };
 
-                    if ((ignoreType || isAssignable()) && namesMatch)
-                    {
-                        whenMatch(srcProperty, destProperty);
-                    }
+                    var nameOrAliasMatch = destAliases
+                        .Any(dest => Array.IndexOf(srcAliases, dest, 0) > -1);
+
+                    if (!nameOrAliasMatch) { continue; }
+
+                    var isAssignable = ignoreType 
+                        || destProperty.PropertyType.IsAssignableFrom(srcProperty.PropertyType)
+                        || srcProperty.PropertyType.IsAssignableFrom(destProperty.PropertyType);
+
+                    if (isAssignable) 
+                    { whenMatch(srcProperty, destProperty); }                    
                 }
             }
+        }
+
+        private static (PropertyInfo, string[]) GetPropAndAliases(PropertyInfo[] properties, int index)
+        {
+            var property = index < properties.Length? properties[index]: null;
+            var aliases = property?.GetAliases();
+
+            return (property, aliases);
         }
     }
 
