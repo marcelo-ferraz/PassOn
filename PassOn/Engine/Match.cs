@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
 using System.Reflection;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PassOn.EngineExtensions
 {
@@ -48,14 +42,5 @@ namespace PassOn.EngineExtensions
                 }
             }
         }
-
-        private static (PropertyInfo, string[]) GetPropAndAliases(PropertyInfo[] properties, int index)
-        {
-            var property = index < properties.Length? properties[index]: null;
-            var aliases = property?.GetAliases();
-
-            return (property, aliases);
-        }
     }
-
 }

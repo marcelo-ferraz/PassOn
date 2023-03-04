@@ -5,8 +5,6 @@ VisualStudioVersion = 17.4.33110.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PassOn", "PassOn\PassOn.csproj", "{6CE702AA-E15D-4480-AF54-A4A72F2318C5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PassOn.Demos", "PassOn.Demos\PassOn.Demos.csproj", "{68357BE3-A74D-4475-A210-5A0EF7A7AB50}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PassOn.Tests", "PassOn.Tests\PassOn.Tests.csproj", "{E357B58B-64A3-47F7-86D9-8CC4978059B7}"
 EndProject
 Global
@@ -19,10 +17,6 @@ Global
 		{6CE702AA-E15D-4480-AF54-A4A72F2318C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6CE702AA-E15D-4480-AF54-A4A72F2318C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6CE702AA-E15D-4480-AF54-A4A72F2318C5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{68357BE3-A74D-4475-A210-5A0EF7A7AB50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{68357BE3-A74D-4475-A210-5A0EF7A7AB50}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{68357BE3-A74D-4475-A210-5A0EF7A7AB50}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{68357BE3-A74D-4475-A210-5A0EF7A7AB50}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E357B58B-64A3-47F7-86D9-8CC4978059B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E357B58B-64A3-47F7-86D9-8CC4978059B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E357B58B-64A3-47F7-86D9-8CC4978059B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
