@@ -1,8 +1,7 @@
 # PassOn
   
 
-**PassOn** is a mapper generator, that aims to simplify the mapping between objects. Is based on the convention over configuration mindset. 
-The generated mappers use simple assignments and are emitted in IL and stored in a thread-safe cache.
+**PassOn** is a mapper generator, that aims to simplify the mapping between objects using convention over configuration. The generated mappers use simple assignments and are emitted in IL and stored in a thread-safe cache.
 
 ## Examples
 ### No configuration, just matching
