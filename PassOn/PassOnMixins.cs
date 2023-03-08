@@ -55,16 +55,16 @@ namespace PassOn
             return Pass.ACollectionOf<Source>.ToAListOf<Target>(enumerable);
         }
 
-        ///// <summary>
-        ///// Maps an object with Deep Cloning or with a custom strategy such as Shallow and/or Deep combined (use the MapStrategyAttribute)
-        ///// </summary>
-        ///// <typeparam name="Target"></typeparam>
-        ///// <param name="input">Object to perform cloning on.</param>
-        ///// <returns>A new instance of the mapped object, in this case a clone.</returns>
-        //public static Target Map<Target>(this Target obj)            
-        //{
-        //    return Pass.On<Target>(obj);
-        //}
+        /// <summary>
+        /// Maps an object with Deep Cloning or with a custom strategy such as Shallow and/or Deep combined (use the MapStrategyAttribute)
+        /// </summary>
+        /// <typeparam name="Target"></typeparam>
+        /// <param name="input">Object to perform cloning on.</param>
+        /// <returns>A new instance of the mapped object, in this case a clone.</returns>
+        public static Target Map<Target>(this Target obj)            
+        {
+            return Pass.On<Target>(obj);
+        }
 
         /// <summary>
         /// Maps an object with one strategy (Deep or Shallow)
