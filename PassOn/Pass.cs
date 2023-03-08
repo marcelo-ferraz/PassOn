@@ -6,344 +6,418 @@ namespace PassOn
 {
     public static class Pass
     {
-        public static class ACollectionOf<T>
+        public static class ACollectionOf<Source>
         {
             /// <summary>
-            /// Passes all the values of an IEnumerable to another list of different types
+            /// Maps or merges all the values of an IEnumerable to another list of different types
             /// </summary>
-            /// <typeparam name="R">The result type</typeparam>
-            /// <param name="array">left array</param>
-            /// <returns>returns an array of that type</returns>
-            public static List<R> ToAListOf<R>(IEnumerable<T> enumerable)
+            /// <typeparam name="Target">The result type</typeparam>
+            /// <param name="enumerable">the source</param>
+            /// <returns>An array of the target type</returns>
+            public static List<Target> ToAListOf<Target>(IEnumerable<Source> enumerable)
             {
                 if (enumerable == null)
                 { return null; }
 
-                var result = new List<R>();
+                var result = new List<Target>();
 
                 foreach (var item in enumerable)
                 {
-                    result.Add(item.To<T, R>());
+                    result.Add(item.Map<Source, Target>());
                 }
 
                 return result;
             }
 
             /// <summary>
-            /// Passes all the values of an array to another list of different types
+            /// Maps or merges all the values of an array to another list of different types
             /// </summary>
-            /// <typeparam name="R">The result type</typeparam>
+            /// <typeparam name="Target">The result type</typeparam>
             /// <param name="array">left array</param>
-            /// <returns>returns an array of that type</returns>
-            public static List<R> ToAListOf<R>(T[] array)
-                where R : class
+            /// <returns>A list of the target type</returns>
+            public static List<Target> ToAListOf<Target>(Source[] array)
+                where Target : class
             {
                 if (array == null) { return null; }
 
-                var result = new List<R>(array.Length);
+                var result = new List<Target>(array.Length);
 
                 for (int i = 0; i < array.Length; i++)
                 {
-                    result.Add(array[i].To<T, R>());
+                    result.Add(array[i].Map<Source, Target>());
                 }
 
                 return result;
             }
 
             /// <summary>
-            /// Passes all the values of an left to another array of different types
+            /// Maps or merges all the values of an left to another array of different types
             /// </summary>
-            /// <typeparam name="R">The result type</typeparam>
-            /// <param name="left">left</param>
-            /// <returns>returns an array of that type</returns>
-            public static R[] ToAnArrayOf<R>(IEnumerable<T> source)
+            /// <typeparam name="Target">The result type</typeparam>
+            /// <param name="source">left</param>
+            /// <returns>An array of the target type</returns>
+            public static Target[] ToAnArrayOf<Target>(IEnumerable<Source> source)
             {
                 if (source == null) { return null; }
 
-                var result = new List<R>();
+                var result = new List<Target>();
 
                 foreach (var item in source)
                 {
-                    result.Add(Pass.On<T, R>(item));
+                    result.Add(Pass.On<Source, Target>(item));
                 }
 
                 return result.ToArray();
             }
 
             /// <summary>
-            /// Passes all the values of an array to another array of different types
+            /// Maps or merges all the values of an array to another array of different types
             /// </summary>
-            /// <typeparam name="R">The result type</typeparam>
+            /// <typeparam name="Target">The result type</typeparam>
             /// <param name="array">left array</param>
-            /// <returns>returns an array of that type</returns>
-            public static R[] ToAnArrayOf<R>(T[] array)
-                where R : class
+            /// <returns>An array of the target type</returns>
+            public static Target[] ToAnArrayOf<Target>(Source[] array)
+                where Target : class
             {
                 if (array == null) { return null; }
 
-                var result = (R[])Array.CreateInstance(
-                    typeof(R), array.Length);
+                var result = (Target[])Array.CreateInstance(
+                    typeof(Target), array.Length);
 
                 for (int i = 0; i < array.Length; i++)
                 {
-                    result[i] = array[i].To<T,R>();
+                    result[i] = array[i].Map<Source,Target>();
                 }
 
                 return result;
             }
 
             /// <summary>
-            /// Passes all the values of an left to another array of different, or similar types
+            /// Maps or merges all the values of an left to another array of different, or similar types
             /// </summary>
-            /// <typeparam name="R">The result type</typeparam>
-            /// <param name="left">left</param>
-            /// <returns>returns an array of that type</returns>
-            public static IList<R> OntoAListOf<R>(IEnumerable<T> source, IEnumerable<R> destination)
+            /// <typeparam name="Target">The result type</typeparam>
+            /// <param name="source">left</param>
+            /// <returns>A list of the target type</returns>
+            public static IList<Target> OntoAListOf<Target>(IEnumerable<Source> source, IEnumerable<Target> target)
             {
-                var result = new List<R>();
+                var result = new List<Target>();
 
                 IterateThrough.Both(
                     source,
-                    destination,
-                    both: (src, dest) => result.Add(Pass.Onto<T, R>(src, dest)),
-                    onlyLeft: (src) => result.Add(Pass.On<T, R>(src)),
+                    target,
+                    both: (src, dest) => result.Add(Pass.Onto<Source, Target>(src, dest)),
+                    onlyLeft: (src) => result.Add(Pass.On<Source, Target>(src)),
                     onlyRight: (dest) => result.Add(dest));
 
                 return result;
             }
 
             /// <summary>
-            /// Passes all the values of an left to another list of different, or similar types
+            /// Maps or merges all the values of an left to another list of different, or similar types
             /// </summary>
-            /// <typeparam name="R">The result type</typeparam>
-            /// <param name="left">left</param>
-            /// <returns>returns an array of that type</returns>
-            public static IList<R> OntoAListOf<R>(IEnumerable<T> source, R[] destination)
+            /// <typeparam name="Target">The result type</typeparam>
+            /// <param name="source">left</param>
+            /// <returns>A list of the target type</returns>
+            public static IList<Target> OntoAListOf<Target>(IEnumerable<Source> source, Target[] target)
             {
-                var result = new List<R>();
+                var result = new List<Target>();
 
                 IterateThrough.Both(
                     source,
-                    destination,
-                    both: (src, i) => result.Add(Pass.Onto<T, R>(src, destination[i])),
-                    onlyLeft: (src) => result.Add(Pass.On<T, R>(src)),
-                    onlyRight: (i) => result.Add(destination[i]));
+                    target,
+                    both: (src, i) => result.Add(Pass.Onto<Source, Target>(src, target[i])),
+                    onlyLeft: (src) => result.Add(Pass.On<Source, Target>(src)),
+                    onlyRight: (i) => result.Add(target[i]));
 
                 return result;
             }
 
             /// <summary>
-            /// Passes all the values of an left to another array of different types
+            /// Maps or merges all the values of an left to another array of different types
             /// </summary>
-            /// <typeparam name="R">The result type</typeparam>
-            /// <param name="left">left</param>
-            /// <returns>returns an array of that type</returns>
-            public static R[] OntoAnArrayOf<R>(IEnumerable<T> source, IEnumerable<R> destination)
+            /// <typeparam name="Target">The result type</typeparam>
+            /// <param name="source">left</param>
+            /// <returns>An array of the target type</returns>
+            public static Target[] OntoAnArrayOf<Target>(IEnumerable<Source> source, IEnumerable<Target> target)
             {
                 if (source == null)
-                { return System.Linq.Enumerable.ToArray(destination); }
+                { return System.Linq.Enumerable.ToArray(target); }
 
-                var result = new List<R>();
+                var result = new List<Target>();
 
                 IterateThrough.Both(
                     source,
-                    destination,
-                    both: (src, dest) => result.Add(Pass.Onto<T, R>(src, dest)),
-                    onlyLeft: (src) => result.Add(Pass.On<T, R>(src)),
+                    target,
+                    both: (src, dest) => result.Add(Pass.Onto<Source, Target>(src, dest)),
+                    onlyLeft: (src) => result.Add(Pass.On<Source, Target>(src)),
                     onlyRight: (dest) => result.Add(dest));
 
                 return result.ToArray();
             }
 
             /// <summary>
-            /// Passes all the values of an left to another array of different types
+            /// Maps or merges all the values of an left to another array of different types
             /// </summary>
-            /// <typeparam name="R">The result type</typeparam>
-            /// <param name="left">left</param>
-            /// <returns>returns an array of that type</returns>
-            public static R[] OntoAnArrayOf<R>(IEnumerable<T> source, R[] destination)
+            /// <typeparam name="Target">The result type</typeparam>
+            /// <param name="source">left</param>
+            /// <returns>An array of the target type</returns>
+            public static Target[] OntoAnArrayOf<Target>(IEnumerable<Source> source, Target[] target)
             {
-                var result = new List<R>();
+                var result = new List<Target>();
 
                 IterateThrough.Both(
                     source,
-                    destination,
-                    both: (src, i) => result.Add(Pass.Onto<T, R>(src, destination[i])),
-                    onlyLeft: (src) => result.Add(Pass.On<T, R>(src)),
-                    onlyRight: (i) => result.Add(destination[i]));
+                    target,
+                    both: (src, i) => result.Add(Pass.Onto<Source, Target>(src, target[i])),
+                    onlyLeft: (src) => result.Add(Pass.On<Source, Target>(src)),
+                    onlyRight: (i) => result.Add(target[i]));
 
                 return result.ToArray();
             }
 
             /// <summary>
-            /// Passes all the values of an left to another list of different, or similar types
+            /// Maps or merges all the values of an left to another list of different, or similar types
             /// </summary>
-            /// <typeparam name="R">The result type</typeparam>
-            /// <param name="left">left</param>
-            /// <returns>returns an array of that type</returns>
-            public static IList<R> OntoAListOf<R>(T[] source, R[] destination)
+            /// <typeparam name="Target">The result type</typeparam>
+            /// <param name="source">left</param>
+            /// <returns>A list of the target type</returns>
+            public static IList<Target> OntoAListOf<Target>(Source[] source, Target[] target)
             {
-                if (source == null) { return new List<R>(destination); }
+                if (source == null) { return new List<Target>(target); }
 
-                var length = (destination != null && destination.Length > source.Length) ?
+                var length = (target != null && target.Length > source.Length) ?
                     source.Length :
-                    destination.Length;
+                    target.Length;
 
-                var result = new List<R>(length);
+                var result = new List<Target>(length);
 
                 IterateThrough.Both(
                     source,
-                    destination,
-                    both: i => result.Add(Pass.Onto<T, R>(source[i], destination[i])),
-                    onlyLeft: i => result.Add(Pass.On<T, R>(source[i])),
-                    onlyRight: i => result.Add(destination[i]));
+                    target,
+                    both: i => result.Add(Pass.Onto<Source, Target>(source[i], target[i])),
+                    onlyLeft: i => result.Add(Pass.On<Source, Target>(source[i])),
+                    onlyRight: i => result.Add(target[i]));
 
                 return result;
             }
 
             /// <summary>
-            /// Passes all the values of an left to another array of different, or similar types
+            /// Maps or merges all the values of an left to another array of different, or similar types
             /// </summary>
-            /// <typeparam name="R">The result type</typeparam>
-            /// <param name="left">left</param>
-            /// <returns>returns an array of that type</returns>
-            public static IList<R> OntoAListOf<R>(T[] source, IEnumerable<R> destination)
+            /// <typeparam name="Target">The result type</typeparam>
+            /// <param name="source">left</param>
+            /// <returns>A list of the target type</returns>
+            public static IList<Target> OntoAListOf<Target>(Source[] source, IEnumerable<Target> target)
             {
-                if (source == null) { return new List<R>(destination); }
+                if (source == null) { return new List<Target>(Pass.On(target)); }
 
-                var result = new List<R>();
+                var result = new List<Target>();
 
                 IterateThrough.Both(
                     source,
-                    destination,
-                    both: (i, dest) => result.Add(Pass.Onto<T, R>(source[i], dest)),
-                    onlyLeft: i => result.Add(Pass.On<T, R>(source[i])),
-                    onlyRight: dest => result.Add(dest));
+                    target,
+                    both: (i, dest) => result.Add(Pass.Onto<Source, Target>(source[i], dest)),
+                    onlyLeft: i => result.Add(Pass.On<Source, Target>(source[i])),
+                    onlyRight: dest => result.Add(Pass.On(dest)));
 
                 return result;
             }
 
             /// <summary>
-            /// Passes all the values of an left to another array of different types
+            /// Maps or merges all the values of an left to another array of different types
             /// </summary>
-            /// <typeparam name="R">The result type</typeparam>
-            /// <param name="left">left</param>
-            /// <returns>returns an array of that type</returns>
-            public static R[] OntoAnArrayOf<R>(T[] source, R[] destination)
+            /// <typeparam name="Target">The result type</typeparam>
+            /// <param name="source">left</param>
+            /// <returns>An array of the target type</returns>
+            public static Target[] OntoAnArrayOf<Target>(Source[] source, Target[] target)
             {
-                if (source == null) { return destination; }
+                if (source == null) { return target; }
 
-                var result = (R[])Array.CreateInstance(typeof(R),
-                    (destination != null && destination.Length > source.Length) ?
+                var result = (Target[])Array.CreateInstance(typeof(Target),
+                    (target != null && target.Length > source.Length) ?
                     source.Length :
-                    destination.Length);
+                    target.Length);
 
                 IterateThrough.Both(
                     source,
-                    destination,
-                    both: i => result[i] = Pass.Onto<T, R>(source[i], destination[i]),
-                    onlyLeft: i => result[i] = Pass.On<T, R>(source[i]),
-                    onlyRight: i => result[i] = destination[i]);
+                    target,
+                    both: i => result[i] = Pass.Onto<Source, Target>(source[i], target[i]),
+                    onlyLeft: i => result[i] = Pass.On<Source, Target>(source[i]),
+                    onlyRight: i => result[i] = Pass.On(target[i]));
 
                 return result;
             }
 
             /// <summary>
-            /// Passes all the values of an left to another array of different types
+            /// Maps all the values of from the source to another array of target types
             /// </summary>
-            /// <typeparam name="R">The result type</typeparam>
-            /// <param name="left">left</param>
-            /// <returns>returns an array of that type</returns>
-            public static R[] OntoAnArrayOf<R>(T[] source, IEnumerable<R> destination)
+            /// <typeparam name="Target">The result type</typeparam>
+            /// <param name="source">left</param>
+            /// <returns>An array of the target type</returns>
+            public static Target[] OntoAnArrayOf<Target>(Source[] source, IEnumerable<Target> target)
             {
                 if (source == null)
-                { return System.Linq.Enumerable.ToArray(destination); }
+                { return System.Linq.Enumerable.ToArray(Pass.On(target)); }
 
-                var result = new List<R>();
+                var result = new List<Target>();
 
                 IterateThrough.Both(
                     source,
-                    destination,
-                    both: (i, dest) => result.Add(Pass.Onto<T, R>(source[i], dest)),
-                    onlyLeft: i => result.Add(Pass.On<T, R>(source[i])),
-                    onlyRight: dest => result.Add(dest));
+                    target,
+                    both: (i, dest) => result.Add(Pass.Onto<Source, Target>(source[i], dest)),
+                    onlyLeft: i => result.Add(Pass.On<Source, Target>(source[i])),
+                    onlyRight: dest => result.Add(Pass.On(dest)));
 
                 return result.ToArray();
             }
         }
 
         /// <summary>
-        /// Clone an object with Deep Cloning or with a custom strategy 
-        /// such as Shallow and/or Deep combined (use the CloneAttribute)
+        /// Maps an object with Deep Cloning or with a custom strategy 
+        /// such as Shallow and/or Deep combined (use the MapStrategyAttribute)
         /// </summary>
-        /// <param name="obj">Object to perform cloning on.</param>
-        /// <returns>Cloned object.</returns>
-        public static Ret On<Src, Ret>(Src obj)
+        /// <param name="input">Object to perform cloning on.</param>
+        /// <returns>A new instance of the mapped object.</returns>
+        public static Target On<Source, Target>(Source input)
         {
-            return PassOnEngine.CloneObjectWithILDeep<Src, Ret>(obj);
+            return PassOnEngine.MapObjectWithILDeep<Source, Target>(input);
         }
 
         /// <summary>
-        /// Clone an object with one strategy (DeepClone or ShallowClone)
+        /// Maps an object with one strategy (Deep or Shallow)
         /// </summary>
-        /// <param name="obj">Object to perform cloning on.</param>
-        /// <param name="inspectionType">Type of cloning</param>
-        /// <returns>Cloned object.</returns>
-        /// <exception cref="InvalidOperationException">When a wrong enum for cloningtype is passed.</exception>
-        public static Ret On<Src, Ret>(Src obj, Strategy cloneType = Strategy.Deep)
+        /// <param name="input">Object to perform cloning on.</param>
+        /// <param name="strategy">strategy for the mapping</param>
+        /// <returns>A new instance of the mapped object, in this case a clone.</returns>
+        /// <exception cref="InvalidOperationException">When a wrong enum for the strategy is passed.</exception>
+        public static Target On<Source, Target>(Source input, Strategy strategy = Strategy.Deep)
         {
-            return (cloneType == Strategy.Shallow) ?
-                PassOnEngine.CloneObjectWithILShallow<Src, Ret>(obj) :
-                PassOnEngine.CloneObjectWithILDeep<Src, Ret>(obj);
+            return (strategy == Strategy.Shallow) ?
+                PassOnEngine.CloneObjectWithILShallow<Source, Target>(input) :
+                PassOnEngine.MapObjectWithILDeep<Source, Target>(input);
         }
 
         /// <summary>
-        /// Passes on, clone, an object with Deep Cloning or with a custom strategy 
-        /// such as Shallow and/or Deep combined (use the CloneAttribute)
+        /// Maps an object with Deep Cloning or with a custom strategy such as Shallow and/or Deep combined (use the MapStrategyAttribute)
         /// </summary>
-        /// <param name="obj">Object to perform cloning on.</param>
-        /// <returns>Cloned object.</returns>
-        public static R On<R>(R obj)
+        /// <typeparam name="Target"></typeparam>
+        /// <param name="input">Object to perform cloning on.</param>
+        /// <returns>A new instance of the mapped object, in this case a clone.</returns>
+        public static Target On<Target>(Target input)
         {
-            return PassOnEngine.CloneObjectWithILDeep<R, R>(obj);
+            return PassOnEngine.MapObjectWithILDeep<Target, Target>(input);
         }
 
         /// <summary>
-        /// Passes on, clone, an object with Deep Cloning or with a custom strategy 
-        /// such as Shallow and/or Deep combined (use the CloneAttribute)
+        /// Clone an object with one strategy (Deep or Shallow)
         /// </summary>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
-        /// <returns></returns>
-        public static Ret On<Src, Ret>(Src source, Ret destination)
+        /// <typeparam name="T"></typeparam>
+        /// <param name="input">Object to perform cloning on.</param>
+        /// <param name="strategy">strategy for the mapping</param>
+        /// <returns>A new instance of the mapped object.</returns>
+        /// <exception cref="InvalidOperationException">When a wrong enum for the strategy is passed.</exception>
+        public static T On<T>(T input, Strategy strategy = Strategy.Deep)
         {
-            return PassOnEngine.MergeWithILDeep(source, destination);
+            return (strategy == Strategy.Shallow) ?
+                PassOnEngine.CloneObjectWithILShallow<T, T>(input) :
+                PassOnEngine.MapObjectWithILDeep<T, T>(input);
         }
 
         /// <summary>
-        /// Clone an object with one strategy (DeepClone or ShallowClone)
+        /// Maps an object with Deep Cloning or with a custom strategy 
+        /// such as Shallow and/or Deep combined (use the MapStrategyAttribute)
         /// </summary>
-        /// <param name="obj">Object to perform cloning on.</param>
-        /// <param name="inspectionType">Type of cloning</param>
-        /// <returns>Cloned object.</returns>
-        /// <exception cref="InvalidOperationException">When a wrong enum for cloningtype is passed.</exception>
-        public static R On<R>(R obj, Strategy cloneType = Strategy.Deep)
+        /// <typeparam name="Overlap"></typeparam>
+        /// <typeparam name="Target"></typeparam>
+        /// <param name="overlap"></param>
+        /// <param name="target"></param>
+        /// <returns>A new target instance with the values of the target overriden by the overlap</returns>
+        public static Target Onto<Overlap, Target>(Overlap source, Target target)
         {
-            return (cloneType == Strategy.Shallow) ?
-                PassOnEngine.CloneObjectWithILShallow<R, R>(obj) :
-                PassOnEngine.CloneObjectWithILDeep<R, R>(obj);
+            return PassOnEngine.MergeWithILDeep(source, target);
         }
 
         /// <summary>
-        /// Passes the values from a left to a right of a different type
+        /// Maps the values from a source to a target of a same type
         /// </summary>
-        /// <typeparam name="R"></typeparam>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <returns></returns>
-        public static R Onto<T, R>(T source, R destination)
+        /// <typeparam name="T"></typeparam>
+        /// <param name="Overlap"></param>
+        /// <param name="target""></param>
+        /// <returns>A new instance with the values of the target overriden by the overlap</returns>
+        public static T Onto<T>(T overlap, T target)
         {
-            return PassOnEngine.MergeWithILDeep(source, destination);
+            return PassOnEngine.MergeWithILDeep(overlap, target);
+        }
+
+        /// <summary>
+        /// Register, if not cached, and returns the mapping function 
+        /// </summary>
+        /// <typeparam name="Source"></typeparam>
+        /// <typeparam name="Target"></typeparam>
+        /// <returns>The mapping function</returns>
+        public static Func<Source, Target> Mapper<Source, Target>()
+        {
+            return (Func<Source, Target>)PassOnEngine.GetOrCreate<Source, Target>();
+        }
+
+        /// <summary>
+        /// Register, if not cached, and returns the mapping function  
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns>The mapping function</returns>
+        public static Func<T, T> Mapper<T>()
+        {
+            return (Func<T, T>)PassOnEngine.GetOrCreate<T, T>();
+        }
+
+        /// <summary>
+        /// Register, if not cached, and returns the mapping function  
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="targetType"></param>
+        /// <returns>The mapping function</returns>
+        public static Delegate Mapper<T>(Type targetType)
+        {
+            return PassOnEngine.GetOrCreate<T, T>(targetType);
+        }
+
+        /// <summary>
+        /// Register, if not cached, and returns the merging function  
+        /// </summary>
+        /// <typeparam name="Source"></typeparam>
+        /// <typeparam name="Target"></typeparam>
+        /// <param name="targetType"></param>
+        /// <returns>The merging function</returns>
+        public static Delegate Mapper<Source, Target>(Type targetType)
+        {
+            return PassOnEngine.GetOrCreate<Source, Target>(targetType);
+        }
+
+        /// <summary>
+        /// Register, if not cached, and returns the mapping function 
+        /// </summary>
+        /// <remarks>
+        /// A shallow mapper moves the references (copy the pointer) and copies the primitives
+        /// </remarks>
+        /// <typeparam name="T"></typeparam>
+        /// <returns>The mapping function</returns>
+        public static Func<T, T> ShallowMapper<T>()
+        {
+            return (Func<T, T>)PassOnEngine.GetOrCreateShallow<T,T>();
+        }
+
+        /// <summary>
+        /// Register, if not cached, and returns the mapping function.
+        /// </summary>
+        /// <remarks>
+        /// A shallow mapper moves the references (copy the pointer) and copies the primitives
+        /// </remarks>
+        /// <typeparam name="Source"></typeparam>
+        /// <typeparam name="Target"></typeparam>
+        /// <returns>The mapping function</returns>
+        public static Func<Source, Target> ShallowMapper<Source, Target>()
+        {
+            return (Func<Source, Target>)PassOnEngine.GetOrCreateShallow<Source, Target>();
         }
     }
 }

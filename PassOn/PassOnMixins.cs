@@ -5,102 +5,136 @@ namespace PassOn
 {
     public static class PassOnMixins
     {
-        public static R[] ToAnArrayOf<T, R>(this T[] array)
-            where R : class
-            where T : class
+        /// <summary>
+        /// Maps or merges all the values of an left to another array of different types
+        /// </summary>
+        /// <typeparam name="Target">The result type</typeparam>
+        /// <param name="source">left</param>
+        /// <returns>An array of the target type</returns>
+        public static Target[] MapToAnArrayOf<Source, Target>(this Source[] array)
+            where Target : class
+            where Source : class
         {
-            return Pass.ACollectionOf<T>.ToAnArrayOf<R>(array);
-        }
-
-        public static R[] ToAnArrayOf<T, R>(this IEnumerable<T> enumerable)
-            where R : class
-            where T : class
-        {
-            return Pass.ACollectionOf<T>.ToAnArrayOf<R>(enumerable);
-        }
-
-        public static IList<R> ToAListOf<T, R>(this T[] array)
-            where R : class
-            where T : class
-        {
-            return Pass.ACollectionOf<T>.ToAListOf<R>(array);
-        }
-
-        public static IList<R> ToAListOf<T, R>(this IEnumerable<T> enumerable)
-        {
-            return Pass.ACollectionOf<T>.ToAListOf<R>(enumerable);
+            return Pass.ACollectionOf<Source>.ToAnArrayOf<Target>(array);
         }
 
         /// <summary>
-        /// Clone an object with Deep Cloning or with a custom strategy 
-        /// such as Shallow and/or Deep combined (use the CloneAttribute)
+        /// Maps or merges all the values of an left to another array of different types
         /// </summary>
-        /// <param name="obj">Object to perform cloning on.</param>
-        /// <returns>Cloned object.</returns>
-        public static R To<R>(this R obj)            
+        /// <typeparam name="Target">The result type</typeparam>
+        /// <param name="source">left</param>
+        /// <returns>An array of the target type</returns>
+        public static Target[] MapToAnArrayOf<Source, Target>(this IEnumerable<Source> enumerable)
+            where Target : class
+            where Source : class
         {
-            return Pass.On<R>(obj);
-        }
-
-
-        /// <summary>
-        /// Clone an object with Deep Cloning or with a custom strategy 
-        /// such as Shallow and/or Deep combined (use the CloneAttribute)
-        /// </summary>
-        /// <param name="obj">Object to perform cloning on.</param>
-        /// <returns>Cloned object.</returns>
-        public static object To(this object obj, Type returnType)
-        {
-            return Pass.On(returnType, obj);            
+            return Pass.ACollectionOf<Source>.ToAnArrayOf<Target>(enumerable);
         }
 
         /// <summary>
-        /// Clone an object with one strategy (DeepClone or ShallowClone)
+        /// Maps or merges all the values of an array to another list of different types
         /// </summary>
-        /// <param name="obj">Object to perform cloning on.</param>
-        /// <param name="inspectionType">Type of cloning</param>
-        /// <returns>Cloned object.</returns>
-        /// <exception cref="InvalidOperationException">When a wrong enum for cloningtype is passed.</exception>
-        public static R To<R>(this R obj, Strategy cloneType = Strategy.Deep)            
+        /// <typeparam name="Target">The result type</typeparam>
+        /// <param name="array">left array</param>
+        /// <returns>A list of the target type</returns>
+        public static IList<Target> MapToAListOf<Source, Target>(this Source[] array)
+            where Target : class
+            where Source : class
         {
-            return Pass.On<R, R>(obj, cloneType); 
+            return Pass.ACollectionOf<Source>.ToAListOf<Target>(array);
         }
 
         /// <summary>
-        /// Clone an object with one strategy (DeepClone or ShallowClone)
+        /// Maps or merges all the values of an IEnumerable to another list of different types
         /// </summary>
-        /// <param name="obj">Object to perform cloning on.</param>
-        /// <param name="inspectionType">Type of cloning</param>
-        /// <returns>Cloned object.</returns>
-        /// <exception cref="InvalidOperationException">When a wrong enum for cloningtype is passed.</exception>
-        public static R To<T, R>(this T obj, Strategy cloneType = Strategy.Deep)
+        /// <typeparam name="Target">The result type</typeparam>
+        /// <param name="enumerable">the source</param>
+        /// <returns>An array of the target type</returns>
+        public static IList<Target> MapToAListOf<Source, Target>(this IEnumerable<Source> enumerable)
         {
-            return Pass.On<T, R>(obj, cloneType); 
+            return Pass.ACollectionOf<Source>.ToAListOf<Target>(enumerable);
         }
 
-        public static T To<T>(this T source, T destination)            
+        ///// <summary>
+        ///// Maps an object with Deep Cloning or with a custom strategy such as Shallow and/or Deep combined (use the MapStrategyAttribute)
+        ///// </summary>
+        ///// <typeparam name="Target"></typeparam>
+        ///// <param name="input">Object to perform cloning on.</param>
+        ///// <returns>A new instance of the mapped object, in this case a clone.</returns>
+        //public static Target Map<Target>(this Target obj)            
+        //{
+        //    return Pass.On<Target>(obj);
+        //}
+
+        /// <summary>
+        /// Maps an object with one strategy (Deep or Shallow)
+        /// </summary>
+        /// <param name="input">Object to perform cloning on.</param>
+        /// <param name="strategy">strategy for the mapping</param>
+        /// <returns>A new instance of the mapped object, in this case a clone.</returns>
+        /// <exception cref="InvalidOperationException">When a wrong enum for the strategy is passed.</exception>
+        public static Target Map<Target>(this Target obj, Strategy cloneType = Strategy.Deep)            
         {
-            return Pass.Onto(source, destination);
+            return Pass.On<Target, Target>(obj, cloneType); 
         }
 
-        public static R To<T, R>(this T source, R destination)
+        /// <summary>
+        /// Maps an object with Deep Cloning or with a custom strategy such as Shallow and/or Deep combined (use the MapStrategyAttribute)
+        /// </summary>
+        /// <typeparam name="Target"></typeparam>
+        /// <param name="input">Object to perform cloning on.</param>
+        /// <returns>A new instance of the mapped object, in this case a clone.</returns>
+        public static Target Map<Source, Target>(this Source obj, Strategy cloneType = Strategy.Deep)
         {
-            return Pass.Onto<T, R>(source, destination);
+            return Pass.On<Source, Target>(obj, cloneType); 
         }
 
-        public static object To(this object source, object destination)
+        /// <summary>
+        /// Maps the values from a source to a target of a same type
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="Overlap"></param>
+        /// <param name="target""></param>
+        /// <returns>A new instance with the values of the target overriden by the overlap</returns>
+        public static Target Merge<Target>(this Target source, Target target)
         {
-            return Pass.On(source, destination);
+            return Pass.Onto<Target>(source, target);
         }
 
-        public static R[] ToArray<T, R>(this IEnumerable<T> source)
+        /// <summary>
+        /// Maps an object with Deep Cloning or with a custom strategy 
+        /// such as Shallow and/or Deep combined (use the MapStrategyAttribute)
+        /// </summary>
+        /// <typeparam name="Overlap"></typeparam>
+        /// <typeparam name="Target"></typeparam>
+        /// <param name="overlap"></param>
+        /// <param name="target"></param>
+        /// <returns>A new target instance with the values of the target overriden by the overlap</returns>
+        public static Target Merge<Source, Target>(this Source overlap, Target target)
         {
-            return Pass.ACollectionOf<T>.ToAnArrayOf<R>(source);
+            return Pass.Onto<Source, Target>(overlap, target);
         }
 
-        public static R[] ToArray<T, R>(this IEnumerable<T> source, IEnumerable<R> destination)
+        /// <summary>
+        /// Maps or merges all the values of an left to another array of different types
+        /// </summary>
+        /// <typeparam name="Target">The result type</typeparam>
+        /// <param name="source">left</param>
+        /// <returns>An array of the target type</returns>
+        public static Target[] MapToArray<Source, Target>(this IEnumerable<Source> source)
         {
-            return Pass.ACollectionOf<T>.OntoAnArrayOf<R>(source, destination);
+            return Pass.ACollectionOf<Source>.ToAnArrayOf<Target>(source);
+        }
+
+        /// <summary>
+        /// Maps or merges all the values of an left to another array of different types
+        /// </summary>
+        /// <typeparam name="Target">The result type</typeparam>
+        /// <param name="source">left</param>
+        /// <returns>An array of the target type</returns>
+        public static Target[] MergeArrays<Source, Target>(this IEnumerable<Source> source, IEnumerable<Target> target)
+        {
+            return Pass.ACollectionOf<Source>.OntoAnArrayOf<Target>(source, target);
         }
     }
 }
