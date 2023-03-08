@@ -39,7 +39,7 @@
                 Message = otherText,
             };
 
-            var result = dto.To(target);
+            var result = dto.Merge(target);
 
             Assert.That(result.Oid, Is.EqualTo(initialId));
             Assert.That(result.Message, Is.EqualTo(initialText));

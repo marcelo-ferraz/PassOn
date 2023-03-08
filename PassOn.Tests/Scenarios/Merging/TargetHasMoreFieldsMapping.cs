@@ -51,7 +51,7 @@
                 Date = targetDate,
             };
 
-            var result = dto.To(target);
+            var result = dto.Merge(target);
 
             Assert.That(result.Id, Is.EqualTo(initialId));
             Assert.That(result.Text, Is.EqualTo(initialText));

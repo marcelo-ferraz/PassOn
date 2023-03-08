@@ -37,7 +37,7 @@
                 Text = otherText,
             };
 
-            var result = src.To(target);
+            var result = src.Merge(target);
 
             Assert.That(result.Id, Is.EqualTo(initialId));
             Assert.That(result.Text, Is.EqualTo(initialText));

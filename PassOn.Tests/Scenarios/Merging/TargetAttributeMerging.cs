@@ -47,7 +47,7 @@
                 Message = otherMessage,
             };
 
-            var result = src.To(target);
+            var result = src.Merge(target);
 
             Assert.That(result.Oid, Is.EqualTo(initialId));
             Assert.That(result.Message, Is.EqualTo(initialText));

@@ -43,7 +43,7 @@
 
             var expectedText = AddToText(initialText);
 
-            var result = src.To<Source, Target>();
+            var result = src.Map<Source, Target>();
 
             Assert.That(result.Id, Is.EqualTo(initialId));
             Assert.That(result.Text, Is.EqualTo(expectedText));

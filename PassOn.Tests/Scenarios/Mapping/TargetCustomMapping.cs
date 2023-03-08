@@ -42,10 +42,10 @@
                 Text = initialText,
             };
 
-            var result = src.To<Source, Target>();
+            var target = src.Map<Source, Target>();
 
-            Assert.That(result.Oid, Is.EqualTo(initialId.ToString()));
-            Assert.That(result.Message, Is.EqualTo(initialText));
+            Assert.That(target.Oid, Is.EqualTo(initialId.ToString()));
+            Assert.That(target.Message, Is.EqualTo(initialText));
         }
 
         [TearDown]

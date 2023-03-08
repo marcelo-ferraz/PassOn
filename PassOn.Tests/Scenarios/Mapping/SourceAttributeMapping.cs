@@ -31,7 +31,7 @@
                 Text = initialText,
             };
 
-            var result = src.To<Source, Target>();
+            var result = src.Map<Source, Target>();
 
             Assert.That(result.Oid, Is.EqualTo(initialId));
             Assert.That(result.Message, Is.EqualTo(initialText));
