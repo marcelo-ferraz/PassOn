@@ -188,7 +188,7 @@ public ComplexObject AndAnotherProperty { get; set; }
 They set the behavior when generating the mapper. The default behavior is `Strategy.Deep`.
 
 ### Strategy.Shallow
-As the name implies, it will be a simple value copy or a reference passing when possible.
+As the name implies, it will be a simple value copy or a reference passing when possible.    
 This is similar to:
 ```csharp
 // age is an int
@@ -196,7 +196,7 @@ target.age = source.age;
 target.ComplexObject = source.ComplexObject; 
 ```
 ### Strategy.Deep
-All properties that have a reference value will call the `On<T>()` function. Their values will be mapped following the same rules and that function will be added to the cache.
+All properties that have a reference value will call the `On<T>()` function. Their values will be mapped following the same rules and that function will be added to the cache.    
 This is similar to:
 ```csharp
 // age is an int
@@ -211,9 +211,9 @@ This strategy has two different applications.
 _When decorating a **source**'s property_, it will be used as a getter function, instead of the actual property getter.    
 This function's signature needs to be similar to `System.Func<T>`, meaning: 
 
-- is public
-- not static
-- returns an type that is assignable to the target's property
+- is public,
+- not static,
+- returns an type that is assignable to the target's property,
 - has no arguments
 
 This is similar to:
@@ -228,8 +228,8 @@ This function's signature needs to be similar to `System.Action<T>`, meaning:
 - is public
 - not static
 - has no return (`void`),
-- has _only_ one argument, and that argument is assignable to the target's property, or is of type `object`
-
+- has _only_ one argument, and that argument is assignable to the target's property, or is of type `object`.
+    
 This is similar to:
 ```csharp
 target.MapAge(source.age); 
