@@ -1,41 +1,126 @@
 # PassOn
+  
 
-**PassOn** is set for no setup and out of the box usage.     
-Simply stating, you can pass the values of `_oneInstance.To<AnotherType>()` or (`Pass.On<AnotherType>(_oneInstance)`), designed as a _Convention over configuration_ library, it matches the names and types. 
-- Little or no configuration,
-- Fast execution (not reflection or expression tree based value passing),
-- Out of the box solution
+**PassOn** is a mapper generator, that aims to simplify the mapping between objects. Is based on the convention over configuration mindset. 
+The generated mappers use simple assignments and are emitted in IL and stored in a thread-safe cache.
 
-##  Basic use (Simplest scenarios)
-In the simplest scenario, where you have properties with the same name and assignable: 
+## Examples
+### No configuration, just matching
+The mapper will try to assign the values from a`source` to a `target` base on: the property **name** and the **type** (it needs to be assignable). Anything else will be ignored.
 
-### How to clone
+<table>
+<tr>
+<th> Source </th><th> Target </th>
+</tr>
+<tr>
+<td>
+   <pre lang="csharp">
+class Source
+{
+  public Guid Id { get; set; }
+  public string? Text { get; set; }
+  public datetime? Date { get; set; }
+}
+   </pre>
+</td>
+<td>
+<pre lang="csharp">
+class Target
+{
+  public Guid Id { get; set; }
+  public string? Text { get; set; }
+  public string? Message { get; set; }
+}
+</pre>
+</td>
+</tr>
+</table>
+
+You can call the mapper like so:
 ```csharp
-OneDTO dto = Pass.On<OneDTO>(instance);
+var target = Pass.On<Source, Target>(src);
 ```
-Or using the extensions,
+Or using the extensions
 ```csharp
-OneDTO dto = instance.To<OneDTO>();
+var target = src.Map<Source, Target>();
 ```
+### Attribute aliasing
+The mapper will try to assign the values from a`source` to a `target` based on the `Aliases` decorating the property (*if the property has one or more aliases, they overrule the name in the matching*). Anything not decorated will behave like the *No configuration, just matching* approach.
 
-###  How to merge
+<table>
+<tr>
+<th> Source </th><th> Target </th>
+</tr>
+<tr>
+<td>
+   <pre lang="csharp">
+class Source
+{ 
+  [MapStrategy("Id", "Identifier")]
+  public Guid Oid { get; set; }
+  
+  public string? Text { get; set; }
+  public string? Message { get; set; }
+}
+   </pre>
+</td>
+<td>
+<pre lang="csharp">
+class Target
+{
+  public Guid Id { get; set; }
+  
+  [MapStrategy("Message")]
+  public string? Text { get; set; }
+  
+  [MapStrategy("Text")]
+  public string? Message { get; set; }
+}
+</pre>
+</td>
+</tr>
+</table>
+
+You can call the mapper like so:
 ```csharp
-CompositeDto dto = Pass.On<CompositeDto>(instance1);
-dto = Pass.Onto(dto, instance2);
+var target = Pass.On<Source, Target>(src);
 ```
-Or using the extensions,
+Or using the extensions
 ```csharp
-var dto = new CompositeDto();
-dto = instance1.To(dto);
-dto = instance2.To(dto);
+var target = src.Map<Source, Target>();
 ```
-Nothing needs to be added to either source or destination types.
 
-## Attributes or Decorators
-
-With the `Clone` attribute, you can set a couple of specific behaviours to the passage:
-
-| Option | Type | Description |
-|---------|---------|---------|
-| InspectionType | `PassOn.Inspection` (enum) | It changes on how the values will be passed, meaning: <ul><li>**Shallow**: a simple value passing and a reference passing when possible </li><li>**Deep**: all values are cloned to the destination</li><li>**Ignore**: nothing is passed</li></ul> For more information, please refer to the section Inspections
-| Aliases | `System.String` | Any values added to this, either on source or destination will be taken into consideration when trying to matching the names. Always the first to match will be used.
+### Using CustomMap Strategy on the source
+The mapper will try to assign the values from a`source` to a `target`. The properties decorated with that strategy will have their mapping based on the mapping function in the body. The name is given by the *property's name* or the value of `mapper` property on the attribute 
+<table>
+<tr>
+<th> Source </th><th> Target </th>
+</tr>
+<tr>
+<td>
+<pre lang="csharp">
+class  Source
+{
+  public  Guid  Id { get; set; }
+  
+  [MapStrategy(Strategy.CustomMap)]
+  public  string?  Text { get; set; }
+  
+  public  string  MapText()
+  {
+    return  AddToText(Text);
+  }
+} 
+</pre>
+</td>
+<td>
+<pre lang="csharp">
+class Target
+{
+  public Guid Id { get; set; }
+  public string? Text { get; set; }
+}
+</pre>
+</td>
+</tr>
+</table>
