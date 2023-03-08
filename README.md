@@ -119,6 +119,15 @@ class Target
 </tr>
 </table>
 
+You can call the mapper like so:
+```csharp
+var target = Pass.On<Source, Target>(src);
+```
+Or using the extensions
+```csharp
+var target = src.Map<Source, Target>();
+```
+
 
 ### Mapping with using CustomMap Strategy on the target
 The mapper will try to assign the values from a `source` to a `target`. The properties decorated with that strategy will have their mapping based on the mapping function in the body. The name is given by the "map" + *property's name* or the value of `mapper` property on the attribute. This function is a **`setter`** meaning it doesn't return any values and has only one parameter that needs to be assignable to the source property.
@@ -152,6 +161,15 @@ class Target
 </td>
 </tr>
 </table>
+
+You can call the mapper like so:
+```csharp
+var target = Pass.On<Source, Target>(src);
+```
+Or using the extensions
+```csharp
+var target = src.Map<Source, Target>();
+```
 
 ## About the framework
 
