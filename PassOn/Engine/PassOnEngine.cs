@@ -112,7 +112,7 @@ namespace PassOn
 
             // Create ILGenerator            
             var dymMethod = new DynamicMethod(
-                "DoDeepClone",
+                "DoDeepMap",
                 typeof(Target),
                 new Type[] { typeof(Source) },
                 Assembly.GetExecutingAssembly().ManifestModule,
@@ -184,7 +184,7 @@ namespace PassOn
             }
 
             var dymMethod = new DynamicMethod(
-                "DoShallowClone",
+                "DoShallowMap",
                 typeof(Target),
                 new Type[] { typeof(Source) },
                 Assembly.GetExecutingAssembly().ManifestModule,

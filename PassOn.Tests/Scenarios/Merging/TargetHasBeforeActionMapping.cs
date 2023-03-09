@@ -19,6 +19,8 @@
             public Guid Id { get; set; }
 
             public string? Text { get; set; }
+
+            [BeforeMapping]
             public void Before(Source src, Target tgt)
             {
                 src.Text = AddToText(src.Text);

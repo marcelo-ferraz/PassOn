@@ -42,6 +42,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BeforeMappingAttribute.cs" />
+    <Compile Include="AfterMappingAttribute.cs" />
+    <Compile Include="ValueTypeArgLifeCycleFunction.cs" />
+    <Compile Include="TargetAttribute.cs" />
+    <Compile Include="SourceAttribute.cs" />
     <Compile Include="Engine\Extensions\EmitLifeCycleFuncsExtensions.cs" />
     <Compile Include="Engine\Extensions\CopyExtensions.cs" />
     <Compile Include="Engine\Extensions\TypeExtensions.cs" />
@@ -51,6 +56,7 @@
     <Compile Include="Engine\Extensions\PropertyInfoExtensions.cs" />
     <Compile Include="MapStrategyAttribute.cs" />
     <Compile Include="CouldNotMatchCustomMapException.cs" />
+    <Compile Include="InvalidArgCountLifeCycleFunction.cs" />
     <Compile Include="StaticCustomMapFoundException.cs" />
     <Compile Include="Strategy.cs" />
     <Compile Include="Pass.cs" />

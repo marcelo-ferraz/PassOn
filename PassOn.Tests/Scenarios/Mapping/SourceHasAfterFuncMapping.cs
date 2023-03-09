@@ -12,6 +12,8 @@
         {
             public Guid Id { get; set; }
             public string? Text { get; set; }
+            
+            [AfterMapping]
             public Target After(Source src, Target tgt)
             {
                 tgt.Text = AddToText(Text);

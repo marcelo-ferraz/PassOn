@@ -12,55 +12,101 @@ namespace PassOn.Engine.Extensions
     {
         internal static void TryEmitBeforeFuncs<Source, Target>(this ILGenerator il)
         {
-            var sourceBeforeFunc = typeof(Source).GetMethod("Before");
+            var sourceBeforeFunc = typeof(Source)
+                .GetMethods()
+                .FirstOrDefault(m => m.GetCustomAttribute<BeforeMappingAttribute>() != null);
 
             if (sourceBeforeFunc != null)
             { EmitSourceFunc<Source, Target>(il, sourceBeforeFunc); }
 
-            var targetBeforeFunc = typeof(Target).GetMethod("Before");
+            var targetBeforeFunc = typeof(Target)
+                .GetMethods()
+                .FirstOrDefault(m => m.GetCustomAttribute<BeforeMappingAttribute>() != null);
 
             if (targetBeforeFunc != null)
-            { EmitTargetFunc<Target>(il, targetBeforeFunc); }
+            { EmitTargetFunc<Source, Target>(il, targetBeforeFunc); }
         }
 
         internal static void TryEmitAfterFuncs<Source, Target>(this ILGenerator il)
         {
-            var sourceAfterFunc = typeof(Source).GetMethod("After");
+            var sourceAfterFunc = typeof(Source)
+                .GetMethods()
+                .FirstOrDefault(m => m.GetCustomAttribute<AfterMappingAttribute>() != null);
 
             if (sourceAfterFunc != null)
             { EmitSourceFunc<Source, Target>(il, sourceAfterFunc); }
 
-            var targetAfterFunc = typeof(Target).GetMethod("After");
+            var targetAfterFunc = typeof(Target)
+                .GetMethods()
+                .FirstOrDefault(m => m.GetCustomAttribute<AfterMappingAttribute>() != null);
 
             if (targetAfterFunc != null)
-            { EmitTargetFunc<Target>(il, targetAfterFunc); }
+            { EmitTargetFunc<Source, Target>(il, targetAfterFunc); }
         }
 
-        private static void EmitTargetFunc<T>(ILGenerator il, MethodInfo func)
+        private static void EmitTargetFunc<Source, Target>(ILGenerator il, MethodInfo func)
         {
             il.Emit(OpCodes.Ldloc_0);
-            EmitFuncCall<T>(il, func);
+            EmitFuncCall<Source, Target>(il, func);
         }
 
         private static void EmitSourceFunc<Source, Target>(ILGenerator il, MethodInfo func)
         {
             il.Emit(OpCodes.Ldarg_0);
-            EmitFuncCall<Target>(il, func);
+            EmitFuncCall<Source, Target>(il, func);
         }
 
-        private static void EmitFuncCall<T>(ILGenerator il, MethodInfo func)
+        private static void EmitFuncCall<Source, Target>(ILGenerator il, MethodInfo func)
         {
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldloc_0);
+            var args = func.GetParameters();
+
+            if (args.Length > 2)
+            { throw new InvalidArgCountLifeCycleFunction(func); }
+
+            foreach (var arg in args) {
+                var argIsObject = arg.ParameterType == typeof(object);
+
+                if (arg.ParameterType.IsValueType) {
+                    throw new ValueTypeArgLifeCycleFunction(arg, func);
+                }
+
+                var isAssignableToSrc = arg
+                    .ParameterType
+                    .IsAssignableFrom(typeof(Source)) && !argIsObject;
+
+                var isAssignableToTgt = arg
+                    .ParameterType
+                    .IsAssignableFrom(typeof(Target)) && !argIsObject;
+
+                var hasSrcAttr = arg                    
+                    .GetCustomAttribute<SourceAttribute>() != null;
+
+                var hasTgtAttr = arg                    
+                    .GetCustomAttribute<TargetAttribute>() != null;
+
+                if (isAssignableToSrc || (hasSrcAttr && argIsObject))
+                {
+                    il.Emit(OpCodes.Ldarg_0);                    
+                }
+                else if (isAssignableToTgt || (hasTgtAttr && argIsObject))
+                {
+                    il.Emit(OpCodes.Ldloc_0);
+                }
+                else
+                {
+                    il.Emit(OpCodes.Ldnull);
+                }
+            } 
+            
             il.Emit(OpCodes.Callvirt, func);
             il.Emit(OpCodes.Nop);
 
             if (func.ReturnType == typeof(void)) { return; }
 
             if (func.ReturnType == typeof(object))
-            { il.Emit(OpCodes.Castclass, typeof(T)); }
+            { il.Emit(OpCodes.Castclass, typeof(Target)); }
 
-            if (func.ReturnType.IsAssignableFrom(typeof(T)))
+            if (func.ReturnType.IsAssignableFrom(typeof(Target)))
             {
                 il.Emit(OpCodes.Stloc_0);
             }
