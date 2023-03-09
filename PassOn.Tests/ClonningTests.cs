@@ -6,12 +6,6 @@ namespace PassOn.Tests
     [TestFixture]
     public class ClonningTests
     {
-        [SetUp]
-        public void SetUp()
-        {
-            PassOnEngine.ClearCache();
-        }
-
         [Test]
         public void ClonningTest()
         {
@@ -59,8 +53,10 @@ namespace PassOn.Tests
                 Array2List = new BaseClass.SubClass[] { new BaseClass.SubClass() { Value = 4 } },
             };
 
+            var engine = new PassOnEngine();
+
             var diffValue =
-                Pass.On<InheritedClass, DifferentClass>(inherited);
+                engine.MapObjectWithILDeep<InheritedClass, DifferentClass>(inherited);
 
             Assert.False(string.IsNullOrEmpty(diffValue.String));
             Assert.That(diffValue.String, Is.EqualTo(inherited.String));

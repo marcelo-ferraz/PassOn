@@ -1,7 +1,7 @@
 ﻿namespace PassOn.Tests.Scenarios.Mapping
 {
     [TestFixture]
-    internal class SourceCustomMapping
+    internal class SourceHasBeforeFuncMapping
     {
         private static string AddToText(string? txt)
         {
@@ -11,13 +11,11 @@
         class Source
         {
             public Guid Id { get; set; }
-
-            [MapStrategy(Strategy.CustomMap)]
             public string? Text { get; set; }
-
-            public string MapText()
+            public Target Before(Source src, Target tgt)
             {
-                return AddToText(Text);
+                src.Text = AddToText(Text);
+                return tgt;
             }
         }
 
@@ -25,7 +23,7 @@
         {
             public Guid Id { get; set; }
 
-            public string Text { get; set; } = string.Empty;
+            public string? Text { get; set; }
         }
 
 
@@ -41,9 +39,9 @@
                 Text = initialText,
             };
 
-            var expectedText = AddToText(initialText);
-
             var result = src.Map<Source, Target>();
+
+            var expectedText = AddToText(initialText);
 
             Assert.That(result.Id, Is.EqualTo(initialId));
             Assert.That(result.Text, Is.EqualTo(expectedText));

@@ -26,6 +26,9 @@ namespace PassOn.EngineExtensions
             if (propMapInfo == null)
             { throw new CustomMapNoMatchException<T>(propMapName, propName); }
 
+            if (propMapInfo.IsStatic)
+            { throw new StaticCustomMapFoundException<T>(propMapName, propName); }
+
             return propMapInfo;
         }
 

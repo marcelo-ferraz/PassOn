@@ -1,12 +1,9 @@
-﻿using Microsoft.Win32;
+﻿using PassOn.Engine.Extensions;
 using PassOn.EngineExtensions;
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Runtime.Serialization;
 
 namespace PassOn
 {
@@ -26,14 +23,14 @@ namespace PassOn
     /// -> Clones the objects of the 'Address' list deep
     /// -> Clones the sub-objects of the Address object shallow. (at the moment)
     /// </remarks>
-    public static class PassOnEngine
+    public class PassOnEngine
     {       
         // Dictionaries for caching the (pre)compiled generated IL code.
-        private static DicMerge _cachedILMerge = new DicMerge();
-        private static DicClone _cachedILShallowClone = new DicClone();
-        private static DicClone _cachedILDeepClone = new DicClone();
+        private DicMerge _cachedILMerge = new DicMerge();
+        private DicClone _cachedILShallowClone = new DicClone();
+        private DicClone _cachedILDeepClone = new DicClone();
 
-        internal static Delegate GetOrCreate<Source, Target>(Type targetType)
+        public Delegate GetOrCreateMerger<Source, Target>(Type targetType)
         {
             Delegate mapper = null;
 
@@ -59,6 +56,8 @@ namespace PassOn
 
             il.Emit(OpCodes.Ldarg_1);
             il.Emit(OpCodes.Stloc, cloneVariable);
+
+            il.TryEmitBeforeFuncs<Source, Target>();
 
             Match.Properties<Source, Target>(
                 (src, tgt) =>
@@ -88,6 +87,8 @@ namespace PassOn
                     }
                 });
 
+            il.TryEmitAfterFuncs<Source, Target>();
+
             il.Emit(OpCodes.Ldloc_0);
             il.Emit(OpCodes.Ret);
 
@@ -100,7 +101,7 @@ namespace PassOn
             return mapper;
         }
 
-        internal static Delegate GetOrCreate<Source, Target>() {
+        public Delegate GetOrCreateMapper<Source, Target>() {
             var key = new CloneKey(
                 typeof(Target), typeof(Source));
 
@@ -126,6 +127,8 @@ namespace PassOn
             il.Construct<Target>();
 
             il.Emit(OpCodes.Stloc, cloneVariable);
+
+            il.TryEmitBeforeFuncs<Source, Target>();
 
             Match.Properties<Source, Target>((src, tgt) =>
             {
@@ -154,6 +157,8 @@ namespace PassOn
                 }
             }, ignoreType: true);
 
+            il.TryEmitAfterFuncs<Source, Target>();
+
             il.Emit(OpCodes.Ldloc_0);
             il.Emit(OpCodes.Ret);
 
@@ -166,7 +171,8 @@ namespace PassOn
             return mapper;
         }
 
-        internal static Delegate GetOrCreateShallow<Source, Target>() {
+        public Delegate GetOrCreateShallowMapper<Source, Target>() 
+        {
             Delegate mapper = null;
 
             var key = new CloneKey(
@@ -196,6 +202,8 @@ namespace PassOn
             il.Emit(OpCodes.Newobj, cInfo);
             il.Emit(OpCodes.Stloc_0);
 
+            il.TryEmitBeforeFuncs<Source, Target>();
+
             Match.Properties<Source, Target>((src, target) =>
             {
                 il.Emit(OpCodes.Ldloc_0);
@@ -203,6 +211,8 @@ namespace PassOn
                 il.Emit(OpCodes.Call, src.GetGetMethod());
                 il.Emit(OpCodes.Call, target.GetSetMethod());
             });
+
+            il.TryEmitAfterFuncs<Source, Target>();
 
             il.Emit(OpCodes.Ldloc_0);
             il.Emit(OpCodes.Ret);
@@ -216,7 +226,7 @@ namespace PassOn
             return mapper;
         }
 
-        internal static Target MergeWithILDeep<Source, Target>(Source source, Target target)
+        public Target MergeWithILDeep<Source, Target>(Source source, Target target)
         {
             if (target == null)
             { return MapObjectWithILDeep<Source, Target>(source); }
@@ -224,12 +234,12 @@ namespace PassOn
             if (source == null)
             { return MapObjectWithILDeep<Target, Target>(target); }
 
-            var mapper = GetOrCreate<Source, Target>(target?.GetType() ?? typeof(Target));
+            var mapper = GetOrCreateMerger<Source, Target>(target?.GetType() ?? typeof(Target));
 
             return ((Func<Source, Target, Target>) mapper)(source, target);
         }
 
-        internal static Target MapObjectWithILDeep<Source, Target>(Source source)
+        public Target MapObjectWithILDeep<Source, Target>(Source source)
         {
             if (source == null)
             { return (Target) Activator.CreateInstance(typeof(Target)); }
@@ -237,7 +247,7 @@ namespace PassOn
             var key = new Tuple<Type, Type>(
                 typeof(Target), typeof(Source));
 
-            var mapper = GetOrCreate<Source, Target>();
+            var mapper = GetOrCreateMapper<Source, Target>();
 
             return ((Func<Source, Target>)mapper)(source);
         }
@@ -250,17 +260,17 @@ namespace PassOn
         /// <typeparam name="T">Type of object to clone</typeparam>    
         /// <param name="left">Object to clone</param>    
         /// <returns>Cloned object (shallow)</returns>    
-        internal static Target CloneObjectWithILShallow<Source, Target>(Source source)
+        public Target CloneObjectWithILShallow<Source, Target>(Source source)
         {            
             if (source == null)
             { return (Target)Activator.CreateInstance(typeof(Target)); }
 
-            var mapper = GetOrCreateShallow<Source, Target>();
+            var mapper = GetOrCreateShallowMapper<Source, Target>();
 
             return ((Func<Source, Target>)mapper)(source);
         }
 
-        public static void ClearCache() {
+        public void ClearCache() {
             _cachedILShallowClone.Clear();
             _cachedILDeepClone.Clear();
             _cachedILMerge.Clear();

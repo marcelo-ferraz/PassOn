@@ -52,6 +52,6 @@ namespace PassOn.EngineExtensions
         internal static void EmitPropertyPassing(this ILGenerator il, LocalBuilder cloneVariable, PropertyInfo srcProperty, PropertyInfo destProperty)
         {
             EmitPropertyPassing(il, cloneVariable, srcProperty.GetGetMethod(), destProperty.GetSetMethod());
-        }
+        }   
     }
 }

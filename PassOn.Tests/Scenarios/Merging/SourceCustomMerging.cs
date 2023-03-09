@@ -60,7 +60,7 @@
         [TearDown]
         public void TearDown()
         {
-            PassOnEngine.ClearCache();
+            Pass.ClearCache();
         }
     }
 }

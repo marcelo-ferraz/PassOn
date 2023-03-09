@@ -1,7 +1,7 @@
 ﻿namespace PassOn.Tests.Scenarios.Mapping
 {
     [TestFixture]
-    internal class SourceCustomMapping
+    internal class TargetHasAfterActionMapping
     {
         private static string AddToText(string? txt)
         {
@@ -11,21 +11,18 @@
         class Source
         {
             public Guid Id { get; set; }
-
-            [MapStrategy(Strategy.CustomMap)]
             public string? Text { get; set; }
-
-            public string MapText()
-            {
-                return AddToText(Text);
-            }
         }
 
         class Target
         {
             public Guid Id { get; set; }
 
-            public string Text { get; set; } = string.Empty;
+            public string? Text { get; set; }
+            public void After(Source src, Target tgt)
+            {
+                tgt.Text = AddToText(src.Text);
+            }
         }
 
 
@@ -41,9 +38,9 @@
                 Text = initialText,
             };
 
-            var expectedText = AddToText(initialText);
-
             var result = src.Map<Source, Target>();
+
+            var expectedText = AddToText(initialText);
 
             Assert.That(result.Id, Is.EqualTo(initialId));
             Assert.That(result.Text, Is.EqualTo(expectedText));

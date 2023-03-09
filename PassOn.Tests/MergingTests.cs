@@ -8,7 +8,7 @@ namespace PassOn.Tests
         [TearDown]
         public void TearDown()
         {
-            PassOnEngine.ClearCache();
+            Pass.ClearCache();
         }
 
         [Test]

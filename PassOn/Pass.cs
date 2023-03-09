@@ -6,6 +6,8 @@ namespace PassOn
 {
     public static class Pass
     {
+        private static PassOnEngine engine = new PassOnEngine();
+
         public static class ACollectionOf<Source>
         {
             /// <summary>
@@ -280,7 +282,7 @@ namespace PassOn
         /// <returns>A new instance of the mapped object.</returns>
         public static Target On<Source, Target>(Source input)
         {
-            return PassOnEngine.MapObjectWithILDeep<Source, Target>(input);
+            return engine.MapObjectWithILDeep<Source, Target>(input);
         }
 
         /// <summary>
@@ -293,8 +295,8 @@ namespace PassOn
         public static Target On<Source, Target>(Source input, Strategy strategy = Strategy.Deep)
         {
             return (strategy == Strategy.Shallow) ?
-                PassOnEngine.CloneObjectWithILShallow<Source, Target>(input) :
-                PassOnEngine.MapObjectWithILDeep<Source, Target>(input);
+                engine.CloneObjectWithILShallow<Source, Target>(input) :
+                engine.MapObjectWithILDeep<Source, Target>(input);
         }
 
         /// <summary>
@@ -305,7 +307,7 @@ namespace PassOn
         /// <returns>A new instance of the mapped object, in this case a clone.</returns>
         public static Target On<Target>(Target input)
         {
-            return PassOnEngine.MapObjectWithILDeep<Target, Target>(input);
+            return engine.MapObjectWithILDeep<Target, Target>(input);
         }
 
         /// <summary>
@@ -319,8 +321,8 @@ namespace PassOn
         public static T On<T>(T input, Strategy strategy = Strategy.Deep)
         {
             return (strategy == Strategy.Shallow) ?
-                PassOnEngine.CloneObjectWithILShallow<T, T>(input) :
-                PassOnEngine.MapObjectWithILDeep<T, T>(input);
+                engine.CloneObjectWithILShallow<T, T>(input) :
+                engine.MapObjectWithILDeep<T, T>(input);
         }
 
         /// <summary>
@@ -334,7 +336,7 @@ namespace PassOn
         /// <returns>A new target instance with the values of the target overriden by the overlap</returns>
         public static Target Onto<Overlap, Target>(Overlap source, Target target)
         {
-            return PassOnEngine.MergeWithILDeep(source, target);
+            return engine.MergeWithILDeep(source, target);
         }
 
         /// <summary>
@@ -346,7 +348,7 @@ namespace PassOn
         /// <returns>A new instance with the values of the target overriden by the overlap</returns>
         public static T Onto<T>(T overlap, T target)
         {
-            return PassOnEngine.MergeWithILDeep(overlap, target);
+            return engine.MergeWithILDeep(overlap, target);
         }
 
         /// <summary>
@@ -357,7 +359,7 @@ namespace PassOn
         /// <returns>The mapping function</returns>
         public static Func<Source, Target> Mapper<Source, Target>()
         {
-            return (Func<Source, Target>)PassOnEngine.GetOrCreate<Source, Target>();
+            return (Func<Source, Target>)engine.GetOrCreateMapper<Source, Target>();
         }
 
         /// <summary>
@@ -367,7 +369,7 @@ namespace PassOn
         /// <returns>The mapping function</returns>
         public static Func<T, T> Mapper<T>()
         {
-            return (Func<T, T>)PassOnEngine.GetOrCreate<T, T>();
+            return (Func<T, T>)engine.GetOrCreateMapper<T, T>();
         }
 
         /// <summary>
@@ -378,7 +380,7 @@ namespace PassOn
         /// <returns>The mapping function</returns>
         public static Delegate Mapper<T>(Type targetType)
         {
-            return PassOnEngine.GetOrCreate<T, T>(targetType);
+            return engine.GetOrCreateMerger<T, T>(targetType);
         }
 
         /// <summary>
@@ -390,7 +392,7 @@ namespace PassOn
         /// <returns>The merging function</returns>
         public static Delegate Mapper<Source, Target>(Type targetType)
         {
-            return PassOnEngine.GetOrCreate<Source, Target>(targetType);
+            return engine.GetOrCreateMerger<Source, Target>(targetType);
         }
 
         /// <summary>
@@ -403,7 +405,7 @@ namespace PassOn
         /// <returns>The mapping function</returns>
         public static Func<T, T> ShallowMapper<T>()
         {
-            return (Func<T, T>)PassOnEngine.GetOrCreateShallow<T,T>();
+            return (Func<T, T>)engine.GetOrCreateShallowMapper<T,T>();
         }
 
         /// <summary>
@@ -417,7 +419,9 @@ namespace PassOn
         /// <returns>The mapping function</returns>
         public static Func<Source, Target> ShallowMapper<Source, Target>()
         {
-            return (Func<Source, Target>)PassOnEngine.GetOrCreateShallow<Source, Target>();
+            return (Func<Source, Target>)engine.GetOrCreateShallowMapper<Source, Target>();
         }
+
+        public static void ClearCache() { engine.ClearCache(); }
     }
 }
