@@ -7,15 +7,6 @@
         {
             public Guid Id { get; set; }
             public string? Text { get; set; }
-            public void Before(Source src, Target tgt)
-            {
-                System.Diagnostics.Debugger.Break();
-            }
-
-            public void After(Source src, Target tgt)
-            {
-                System.Diagnostics.Debugger.Break();
-            }
         }
 
         class Target
@@ -23,17 +14,6 @@
             public Guid Id { get; set; }
 
             public string? Text { get; set; }
-            
-            public void Before(Source src, object tgt)
-            {
-                System.Diagnostics.Debugger.Break();
-            }
-
-            public object After(Source src, Target tgt)
-            {
-                System.Diagnostics.Debugger.Break();                
-                return tgt;
-            }
         }
 
 
