@@ -42,8 +42,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AmbiguousArgumentMatchException.cs" />
     <Compile Include="BeforeMappingAttribute.cs" />
     <Compile Include="AfterMappingAttribute.cs" />
+    <Compile Include="BothArgumentsAreTargetsException.cs" />
+    <Compile Include="BothArgumentsAreSourcesException.cs" />
     <Compile Include="ValueTypeArgLifeCycleFunction.cs" />
     <Compile Include="TargetAttribute.cs" />
     <Compile Include="SourceAttribute.cs" />
