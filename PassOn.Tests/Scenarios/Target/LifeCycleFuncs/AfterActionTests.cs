@@ -4,20 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
+namespace PassOn.Tests.Scenarios.Target.LifeCycleFuncs
 {
     [TestFixture]
-    internal class SourceWithAfterActionTests
+    internal class AfterActionTests
     {
 
-        class Target
+        class Source
         {
             public Guid Id { get; set; }
 
             public string? Text { get; set; }
         }
 
-        class Source
+        class Target
         {
             public List<object?> Values { get; private set; } = new List<object?>();
 
@@ -25,17 +25,17 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
             public string? Text { get; set; }
         }
 
-        class ProperArgs : Source
+        class ProperArgs : Target
         {
             [AfterMapping]
-            public void After(Source src, Target tgt)
+            public void After(Target src, Source tgt)
             {
                 Values.Add(src);
                 Values.Add(tgt);
             }
         }
 
-        class NoArgs : Source
+        class NoArgs : Target
         {
             [AfterMapping]
             public void After()
@@ -45,10 +45,10 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
             }
         }
 
-        class SourceOnlyArg : Source
+        class SourceOnlyArg : Target
         {
             [AfterMapping]
-            public void After(Source src)
+            public void After(Target src)
             {
 
                 Values.Add(src);
@@ -56,7 +56,7 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
             }
         }
 
-        class OnlyArgObject : Source
+        class OnlyArgObject : Target
         {
             [AfterMapping]
             public void After([Source] object src)
@@ -66,7 +66,7 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
             }
         }
 
-        class OnlyArgObjectNoAttribute : Source
+        class OnlyArgObjectNoAttribute : Target
         {
             [AfterMapping]
             public void After(object src)
@@ -76,17 +76,17 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
             }
         }
 
-        class TargetOnlyArg : Source
+        class TargetOnlyArg : Target
         {
             [AfterMapping]
-            public void After(Target tgt)
+            public void After(Source tgt)
             {
                 Values.Add(null);
                 Values.Add(tgt);
             }
         }
 
-        class TargetOnlyArgObject : Source
+        class TargetOnlyArgObject : Target
         {
             [AfterMapping]
             public void After([Target] object tgt)
@@ -96,7 +96,7 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
             }
         }
 
-        class TargetOnlyArgObjectNoAttribute : Source
+        class TargetOnlyArgObjectNoAttribute : Target
         {
             [AfterMapping]
             public void After(object tgt)
@@ -106,7 +106,7 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
             }
         }
 
-        class BothArgsAreObject : Source
+        class BothArgsAreObject : Target
         {
             [AfterMapping]
             public void After([Source] object src, [Target] object tgt)
@@ -116,61 +116,61 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
             }
         }
 
-        class SourceIsObjectTargetIsProper : Source
+        class SourceIsObjectTargetIsProper : Target
         {
             [AfterMapping]
-            public void After([Source] object src, Target tgt)
+            public void After([Source] object src, Source tgt)
             {
                 Values.Add(src);
                 Values.Add(tgt);
             }
         }
 
-        class SourceIsProperTargetIsObject : Source
+        class SourceIsProperTargetIsObject : Target
         {
             [AfterMapping]
-            public void After(Source src, [Target] object tgt)
+            public void After(Target src, [Target] object tgt)
             {
                 Values.Add(src);
                 Values.Add(tgt);
             }
         }
 
-        class ArgOrderInverted : Source
+        class ArgOrderInverted : Target
         {
             [AfterMapping]
-            public void After(Target arg1, Source arg2)
+            public void After(Source arg1, Target arg2)
             {
                 Values.Add(arg1);
                 Values.Add(arg2);
             }
         }
 
-        class BothArgumentsAreTargets : Source
-        {
-            [AfterMapping]
-            public void After(Target tgt, Target src)
-            { /* this one will throw an exception */ }
-        }
-
-        class BothArgumentsAreSources : Source
+        class BothArgumentsAreTargets : Target
         {
             [AfterMapping]
             public void After(Source tgt, Source src)
             { /* this one will throw an exception */ }
         }
 
-        class BothHaveSourceAttributes : Source
+        class BothArgumentsAreSources : Target
         {
             [AfterMapping]
-            public void After([Source] Target tgt, [Source] Source src)
+            public void After(Target tgt, Target src)
             { /* this one will throw an exception */ }
         }
 
-        class BothHaveTargetAttributes : Source
+        class BothHaveSourceAttributes : Target
         {
             [AfterMapping]
-            public void After([Target] Target tgt, [Target] Source src)
+            public void After([Source] Source tgt, [Source] Target src)
+            { /* this one will throw an exception */ }
+        }
+
+        class BothHaveTargetAttributes : Target
+        {
+            [AfterMapping]
+            public void After([Target] Source tgt, [Target] Target src)
             { /* this one will throw an exception */ }
         }
 
@@ -187,8 +187,8 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
             passOnEngine = new PassOnEngine();
         }
 
-        private (S source, Func<S, Target> mapper) Arrange<S>()
-        where S : Source, new()
+        private (S source, Func<S, Source> mapper) Arrange<S>()
+        where S : Target, new()
         {
             var source = new S
             {
@@ -196,8 +196,8 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
                 Text = initialText,
             };
 
-            var mapper = (Func<S, Target>)passOnEngine
-                .GetOrCreateMapper<S, Target>();
+            var mapper = (Func<S, Source>)passOnEngine
+                .GetOrCreateMapper<S, Source>();
 
             return (source, mapper);
         }
@@ -243,8 +243,8 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
 
             Assert.That(result.Id, Is.EqualTo(initialId));
             Assert.That(result.Text, Is.EqualTo(initialText));
-            Assert.That(source.Values[0]?.GetType(), Is.EqualTo(typeof(Target)));
-            Assert.IsTrue(source.Values[1]?.GetType().IsAssignableTo(typeof(Source)));
+            Assert.That(source.Values[0]?.GetType(), Is.EqualTo(typeof(Source)));
+            Assert.IsTrue(source.Values[1]?.GetType().IsAssignableTo(typeof(Target)));
         }
 
         [Test]
@@ -256,8 +256,8 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
 
             Assert.That(result.Id, Is.EqualTo(initialId));
             Assert.That(result.Text, Is.EqualTo(initialText));
-            Assert.IsTrue(source.Values[0]?.GetType().IsAssignableTo(typeof(Source)));
-            Assert.That(source.Values[1]?.GetType(), Is.EqualTo(typeof(Target)));
+            Assert.IsTrue(source.Values[0]?.GetType().IsAssignableTo(typeof(Target)));
+            Assert.That(source.Values[1]?.GetType(), Is.EqualTo(typeof(Source)));
         }
 
         [Test] 
@@ -267,8 +267,8 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
             
             Assert.That(result.Id, Is.EqualTo(initialId)); 
             Assert.That(result.Text, Is.EqualTo(initialText));
-            Assert.IsTrue(source.Values[0]?.GetType().IsAssignableTo(typeof(Source))); 
-            Assert.That(source.Values[1]?.GetType(), Is.EqualTo(typeof(Target))); 
+            Assert.IsTrue(source.Values[0]?.GetType().IsAssignableTo(typeof(Target))); 
+            Assert.That(source.Values[1]?.GetType(), Is.EqualTo(typeof(Source))); 
         }
 
         [Test] 
@@ -289,7 +289,7 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
             
             Assert.That(result.Id, Is.EqualTo(initialId)); 
             Assert.That(result.Text, Is.EqualTo(initialText));
-            Assert.IsTrue(source.Values[0]?.GetType().IsAssignableTo(typeof(Source)));
+            Assert.IsTrue(source.Values[0]?.GetType().IsAssignableTo(typeof(Target)));
             Assert.IsNull(source.Values[1]);
         }
 
@@ -300,18 +300,19 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
             
             Assert.That(result.Id, Is.EqualTo(initialId)); 
             Assert.That(result.Text, Is.EqualTo(initialText));
-            Assert.IsTrue(source.Values[0]?.GetType().IsAssignableTo(typeof(Source))); 
+            Assert.IsTrue(source.Values[0]?.GetType().IsAssignableTo(typeof(Target))); 
             Assert.IsNull(source.Values[1]); 
         }
 
-        [Test] 
-        public void OnlyArgObjectNoAttributeTest() { 
+        [Test]
+        public void OnlyArgObjectNoAttributeTest()
+        {
             Assert.Throws<AmbiguousArgumentMatchException>(
                 () => Arrange<OnlyArgObjectNoAttribute>()
             );
         }
 
-        [Test] 
+        [Test]
         public void TargetOnlyArgTest() { 
             var (source, mapper) = Arrange<TargetOnlyArg>(); 
             var result = mapper(source); 
@@ -319,7 +320,7 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
             Assert.That(result.Id, Is.EqualTo(initialId)); 
             Assert.That(result.Text, Is.EqualTo(initialText));
             Assert.IsNull(source.Values[0]); 
-            Assert.That(source.Values[1]?.GetType(), Is.EqualTo(typeof(Target))); 
+            Assert.That(source.Values[1]?.GetType(), Is.EqualTo(typeof(Source))); 
         }
 
         [Test] 
@@ -330,14 +331,14 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
             Assert.That(result.Id, Is.EqualTo(initialId)); 
             Assert.That(result.Text, Is.EqualTo(initialText));
             Assert.IsNull(source.Values[0]);
-            Assert.That(source.Values[1]?.GetType(), Is.EqualTo(typeof(Target))); 
+            Assert.That(source.Values[1]?.GetType(), Is.EqualTo(typeof(Source))); 
         }
 
         [Test] 
         public void TargetOnlyArgObjectNoAttributeTest() {
             Assert.Throws<AmbiguousArgumentMatchException>(
-                () => Arrange<TargetOnlyArgObjectNoAttribute>()
-            );
+                 () => Arrange<TargetOnlyArgObjectNoAttribute>()
+             );
         }
 
         [Test] 
@@ -347,8 +348,8 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
             
             Assert.That(result.Id, Is.EqualTo(initialId)); 
             Assert.That(result.Text, Is.EqualTo(initialText));
-            Assert.IsTrue(source.Values[0]?.GetType().IsAssignableTo(typeof(Source))); 
-            Assert.That(source.Values[1]?.GetType(), Is.EqualTo(typeof(Target))); 
+            Assert.IsTrue(source.Values[0]?.GetType().IsAssignableTo(typeof(Target))); 
+            Assert.That(source.Values[1]?.GetType(), Is.EqualTo(typeof(Source))); 
         }
 
         [Test] 
@@ -358,8 +359,8 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
             
             Assert.That(result.Id, Is.EqualTo(initialId)); 
             Assert.That(result.Text, Is.EqualTo(initialText));
-            Assert.IsTrue(source.Values[0]?.GetType().IsAssignableTo(typeof(Source))); 
-            Assert.That(source.Values[1]?.GetType(), Is.EqualTo(typeof(Target))); 
+            Assert.IsTrue(source.Values[0]?.GetType().IsAssignableTo(typeof(Target))); 
+            Assert.That(source.Values[1]?.GetType(), Is.EqualTo(typeof(Source))); 
         }
     }
 }

@@ -59,7 +59,7 @@ namespace PassOn.Tests
                 new InheritedClass { Date = DateTime.Now };
 
             var result = Pass
-                .Onto<BaseClass, InheritedClass>(null, expected);                
+                .Onto<BaseClass?, InheritedClass>(null, expected);                
 
             Assert.That(result.GetHashCode(), Is.Not.EqualTo(expected.GetHashCode()));
             Assert.That(result.Date, Is.EqualTo(expected.Date));
@@ -68,7 +68,7 @@ namespace PassOn.Tests
         [Test]
         public void MergingWithNullsReturnsAnInstance()
         {
-            var result = Pass.Onto<BaseClass, DifferentClass>(null, null);
+            var result = Pass.Onto<BaseClass?, DifferentClass?>(null, null);
             Assert.IsNotNull(result);           
         }
     }

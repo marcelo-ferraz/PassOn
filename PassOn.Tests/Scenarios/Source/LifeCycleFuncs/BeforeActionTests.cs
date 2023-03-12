@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
 {
     [TestFixture]
-    internal class SourceWithBeforeFuncTests
+    internal class BeforeActionTests
     {
 
         class Target
@@ -28,187 +28,150 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
         class ProperArgs : Source
         {
             [BeforeMapping]
-            public Target Before(Source src, Target tgt)
+            public void Before(Source src, Target tgt)
             {
                 Values.Add(src);
                 Values.Add(tgt);
-
-                return tgt;
             }
         }
 
         class NoArgs : Source
         {
             [BeforeMapping]
-            public Target Before()
+            public void Before()
             {
                 Values.Add(null);
                 Values.Add(null);
-
-                return new Target();
             }
         }
 
         class SourceOnlyArg : Source
         {
             [BeforeMapping]
-            public Target Before(Source src)
+            public void Before(Source src)
             {
+
                 Values.Add(src);
                 Values.Add(null);
-
-                return new Target();
             }
         }
 
         class OnlyArgObject : Source
         {
             [BeforeMapping]
-            public Target Before([Source] object src)
+            public void Before([Source] object src)
             {
                 Values.Add(src);
                 Values.Add(null);
-
-                return new Target();
             }
         }
 
         class OnlyArgObjectNoAttribute : Source
         {
             [BeforeMapping]
-            public Target Before(object src)
+            public void Before(object src)
             {
                 Values.Add(src);
                 Values.Add(null);
-
-                return new Target();
             }
         }
 
         class TargetOnlyArg : Source
         {
             [BeforeMapping]
-            public Target Before(Target tgt)
+            public void Before(Target tgt)
             {
                 Values.Add(null);
                 Values.Add(tgt);
-
-                return tgt;
             }
         }
 
         class TargetOnlyArgObject : Source
         {
             [BeforeMapping]
-            public Target Before([Target] object tgt)
+            public void Before([Target] object tgt)
             {
                 Values.Add(null);
                 Values.Add(tgt);
-
-                return (Target) tgt;
             }
         }
 
         class TargetOnlyArgObjectNoAttribute : Source
         {
             [BeforeMapping]
-            public Target Before(object tgt)
+            public void Before(object tgt)
             {
                 Values.Add(null);
                 Values.Add(tgt);
-
-                // tgt is null here, as there is no way to know 
-                // maybe I should throw an exception?
-                return new Target();
             }
         }
 
         class BothArgsAreObject : Source
         {
             [BeforeMapping]
-            public Target Before([Source] object src, [Target] object tgt)
+            public void Before([Source] object src, [Target] object tgt)
             {
                 Values.Add(src);
                 Values.Add(tgt);
-
-                return (Target) tgt;
             }
         }
 
         class SourceIsObjectTargetIsProper : Source
         {
             [BeforeMapping]
-            public Target Before([Source] object src, Target tgt)
+            public void Before([Source] object src, Target tgt)
             {
                 Values.Add(src);
                 Values.Add(tgt);
-
-                return tgt;
             }
         }
 
         class SourceIsProperTargetIsObject : Source
         {
             [BeforeMapping]
-            public Target Before(Source src, [Target] object tgt)
+            public void Before(Source src, [Target] object tgt)
             {
                 Values.Add(src);
                 Values.Add(tgt);
-
-                return (Target) tgt;
             }
         }
 
         class ArgOrderInverted : Source
         {
             [BeforeMapping]
-            public Target Before(Target arg1, Source arg2)
+            public void Before(Target arg1, Source arg2)
             {
                 Values.Add(arg1);
                 Values.Add(arg2);
-
-                return new Target();
             }
         }
 
         class BothArgumentsAreTargets : Source
         {
             [BeforeMapping]
-            public Target Before(Target tgt, Target src)
-            { 
-                /* this one will throw an exception */
-                return tgt;
-            }
+            public void Before(Target tgt, Target src)
+            { /* this one will throw an exception */ }
         }
 
         class BothArgumentsAreSources : Source
         {
             [BeforeMapping]
-            public Target Before(Source tgt, Source src)
-            { 
-                /* this one will throw an exception */
-                return new Target();
-            }
+            public void Before(Source tgt, Source src)
+            { /* this one will throw an exception */ }
         }
 
         class BothHaveSourceAttributes : Source
         {
             [BeforeMapping]
-            public Target Before([Source] Target tgt, [Source] Source src)
-            { 
-                /* this one will throw an exception */
-                return tgt;
-            }
+            public void Before([Source] Target tgt, [Source] Source src)
+            { /* this one will throw an exception */ }
         }
 
         class BothHaveTargetAttributes : Source
         {
             [BeforeMapping]
-            public Target Before([Target] Target tgt, [Target] Source src)
-            {
-                /* this one will throw an exception */
-                return tgt;
-            }
+            public void Before([Target] Target tgt, [Target] Source src)
+            { /* this one will throw an exception */ }
         }
 
         Guid initialId;
@@ -372,7 +335,7 @@ namespace PassOn.Tests.Scenarios.Source.LifeCycleFuncs
 
         [Test] 
         public void TargetOnlyArgObjectNoAttributeTest() { 
-            Assert.Throws<AmbiguousArgumentMatchException>(
+           Assert.Throws<AmbiguousArgumentMatchException>(
                 () => Arrange<TargetOnlyArgObjectNoAttribute>()
             );
         }

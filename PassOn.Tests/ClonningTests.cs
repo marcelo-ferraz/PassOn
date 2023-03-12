@@ -1,5 +1,4 @@
 ﻿using PassOn.Tests.Models;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PassOn.Tests
 {
@@ -23,14 +22,14 @@ namespace PassOn.Tests
         [Test]
         public void ClonningWithNullParameter()
         {
-            var result = Pass.On<BaseClass>(null);
+            var result = Pass.On<BaseClass?>(null);
             Assert.IsNotNull(result);            
         }
 
         [Test]
         public void ShallowClonningWithNullParameter()
         {
-            var result = Pass.On<BaseClass>(null, Strategy.Shallow);
+            var result = Pass.On<BaseClass?>(null, Strategy.Shallow);
             Assert.IsNotNull(result);
         }
 
