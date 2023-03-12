@@ -175,7 +175,7 @@ var target = src.Map<Source, Target>();
 
 ## The MapStrategyAttribute
 
-When decorating a property, it changes the behaviour of the mapper for that property.
+When decorating a property, it will change the behaviour of the mapper for that property.
 When decorating with it you can:
 ```csharp
 // Pass just the strategy
@@ -246,10 +246,131 @@ This function's signature needs to be similar to `System.Action<T>`, meaning:
 - is public
 - not static
 - has no return (`void`),
-- has _only_ one argument, and that argument is assignable to the target's property, or is of type `object`.
-    
+- has _only_ one argument, and that argument is assignable to the target's property, or is of type `object`.    
 This is similar to:
 ```csharp
 target.MapAge(source.age); 
 target.MapComplexObject(source.ComplexObject); 
+```
+## The life-cycle Interceptors
+Each mapper has lifecycle which you can monitor and manipulate. 
+In order to intercept them, your function needs to obey some constraints:
+- Be decorated with the `BeforeMappingAttribute` or `AfterMappingAttribute`, the name is not important,
+- Have a maximum of 2 arguments,
+- Can return `void` or the **target**'s `Type`, or something that can be cast to the target's type,
+- if has two arguments, one needs to assignable to the source and the other to the type,
+- if the argument is an object, it needs to be decorated with `SourceAttribute` or `TargetAttribute`.
+### Examples
+Monitoring the map:
+```csharp
+[BeforeMapping]
+public void Log(Source src) 
+{
+	Log.Debug($"Parsing {src.Id}");
+}
+```
+Manipulating the map:
+```csharp
+[AfterMapping]
+public void Manipulate(Source src, Target target) 
+{	
+	target.NotMappedProperty = DateTime.Now();
+}
+```
+Throwing the merging away:
+```csharp
+[BeforeMapping]
+public void Validate(Source src, Target target) 
+{	
+	if(src.Id != target.Id) {
+		throw new IdsDontMatchException(src.Id, target.Id);
+	}
+}
+```
+Throwing the target away:
+```csharp
+[BeforeMapping]
+public Target Validate(Source src, Target target) 
+{	
+	if(target.Id != Guid.Empty) {
+		return new Target();
+	}
+	return target;
+}
+```
+### Before Mapping
+This happens before the mapping starts. You can think of it as:
+If you create an `Action` like method, you can think of it as:
+```csharp
+[BeforeMapping]
+public void Log(Source src) 
+{
+	// do something here
+}
+```
+And it would generate:
+```csharp
+target.Log(source);
+
+target.age = source.age;
+target.ComplexObject = source.ComplexObject;
+
+return target
+```
+Or  if you create an `Func` like method, you can think of it as:
+```csharp
+[BeforeMapping]
+public object Modify(Source src, [Target] object tgt) 
+{
+	// do something here
+	return tgt;
+}
+```
+And it would generate:
+```csharp
+// this signature could be something like
+target = (Target) source.Modify(source, target);
+
+target.age = source.age;
+target.ComplexObject = source.ComplexObject;
+
+return target
+```
+### After Mapping
+This happens after the mapping starts. 
+If you create an `Action` like method, you can think of it as:
+```csharp
+[AfterMapping]
+public void Log(Source src) 
+{
+	// do something here
+}
+```
+And it would generate:
+```csharp
+target.age = source.age;
+target.ComplexObject = source.ComplexObject;
+
+target.Log(source);
+
+return target
+```
+Or  if you create an `Func` like method, you can think of it as:
+```csharp
+[AfterMapping]
+public object Modify(Source src, [Target] object tgt) 
+{
+	// do something here
+	return tgt;
+}
+```
+And it would generate:
+```csharp
+// this signature could be something like
+target.age = source.age;
+target.ComplexObject = source.ComplexObject;
+
+target = (Target) source.Modify(source, target);
+
+return target
 ```
