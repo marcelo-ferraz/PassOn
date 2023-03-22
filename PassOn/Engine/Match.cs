@@ -11,6 +11,31 @@ namespace PassOn.EngineExtensions
             return type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         }
 
+        internal static void PropertiesNoStrategy<Source, Target>(Action<PropertyInfo, PropertyInfo> whenMatch, bool ignoreType = false)
+        {
+            var destProperties =
+                GetProperties(typeof(Target));
+
+            foreach (var srcProperty in GetProperties(typeof(Source)))
+            {
+                foreach (var destProperty in destProperties)
+                {                       
+                    if (srcProperty.Name != destProperty.Name) { continue; }
+
+                    var srcType = srcProperty.PropertyType;
+                    var destType = destProperty.PropertyType;
+
+                    var isAssignable = ignoreType
+                        || (destType.IsClass && destType.IsClass)
+                        || destType.IsAssignableFrom(srcType)
+                        || srcType.IsAssignableFrom(destType);
+
+                    if (isAssignable)
+                    { whenMatch(srcProperty, destProperty); }
+                }
+            }
+        }
+
         internal static void Properties<Source, Target>(Action<PropertyInfo, PropertyInfo> whenMatch, bool ignoreType = false)
         {
             var destProperties =
@@ -57,6 +82,7 @@ namespace PassOn.EngineExtensions
                     } 
 
                     var isAssignable = ignoreType 
+                        || (destType.IsClass && destType.IsClass)
                         || destType.IsAssignableFrom(srcType)
                         || srcType.IsAssignableFrom(destType);
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PassOn
+namespace PassOn.Exceptions
 {
     public class StaticCustomMapFoundException<T> : Exception
     {

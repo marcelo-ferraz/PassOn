@@ -369,30 +369,7 @@ namespace PassOn
         /// <returns>The mapping function</returns>
         public static Func<T, T> Mapper<T>()
         {
-            return (Func<T, T>)engine.GetOrCreateMapper<T, T>();
-        }
-
-        /// <summary>
-        /// Register, if not cached, and returns the mapping function  
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="targetType"></param>
-        /// <returns>The mapping function</returns>
-        public static Delegate Mapper<T>(Type targetType)
-        {
-            return engine.GetOrCreateMerger<T, T>(targetType);
-        }
-
-        /// <summary>
-        /// Register, if not cached, and returns the merging function  
-        /// </summary>
-        /// <typeparam name="Source"></typeparam>
-        /// <typeparam name="Target"></typeparam>
-        /// <param name="targetType"></param>
-        /// <returns>The merging function</returns>
-        public static Delegate Mapper<Source, Target>(Type targetType)
-        {
-            return engine.GetOrCreateMerger<Source, Target>(targetType);
+            return engine.GetOrCreateMapper<T, T>();
         }
 
         /// <summary>

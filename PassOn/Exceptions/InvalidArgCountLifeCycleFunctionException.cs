@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Reflection;
 
-namespace PassOn
+namespace PassOn.Exceptions
 {
-    public class InvalidArgCountLifeCycleFunction: Exception
+    public class InvalidArgCountLifeCycleFunctionException: Exception
     {
-        public InvalidArgCountLifeCycleFunction(MethodInfo func)
+        public InvalidArgCountLifeCycleFunctionException(MethodInfo func)
             : base($"The \"{func.DeclaringType}.{func}\" function has an invalid number of arguments! ")
         { }
     }

@@ -27,6 +27,8 @@
             }
         }
 
+        // i believe that this happens because of the mapping (cloning) for the original target, during merge, 
+        // I probably need to ignore the AfterMapping and BeforeMappings there, maybe even the aliases
 
         [Test]
         public void Test()

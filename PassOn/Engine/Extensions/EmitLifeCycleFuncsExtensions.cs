@@ -5,6 +5,7 @@ using System.Reflection.Emit;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using PassOn.Exceptions;
 
 namespace PassOn.Engine.Extensions
 {
@@ -61,7 +62,7 @@ namespace PassOn.Engine.Extensions
             var args = func.GetParameters();
 
             if (args.Length > 2)
-            { throw new InvalidArgCountLifeCycleFunction(func); }
+            { throw new InvalidArgCountLifeCycleFunctionException(func); }
 
             var srcWasEmitted = false;
             var srcAttrWasFound = false;
@@ -72,7 +73,7 @@ namespace PassOn.Engine.Extensions
                 var argIsObject = arg.ParameterType == typeof(object);
 
                 if (arg.ParameterType.IsValueType) {
-                    throw new ValueTypeArgLifeCycleFunction(arg, func);
+                    throw new ValueTypeArgLifecycleFunctionException(arg, func);
                 }
 
                 var isAssignableToSrc = arg

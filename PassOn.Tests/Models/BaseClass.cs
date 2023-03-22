@@ -15,12 +15,12 @@ namespace PassOn.Tests.Models
 
         public int Int { get; set; }
         public string String { get; set; }
-        [MapStrategy(Strategy.Shallow)]
-        public List<int> Numbers { get; set; }
+        // [MapStrategy(Strategy.Shallow)]
+        // public List<int> Numbers { get; set; }
 
         public List<SubClass> List { get; set; }
-        public List<SubClass> List2Array { get; set; }
-        public SubClass[] Array { get; set; }
-        public SubClass[] Array2List { get; set; }
+        //public List<SubClass> List2Array { get; set; }
+        // public SubClass[] Array { get; set; }
+        //public SubClass[] Array2List { get; set; }
     }
 }

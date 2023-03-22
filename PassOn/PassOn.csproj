@@ -42,12 +42,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AmbiguousArgumentMatchException.cs" />
+    <Compile Include="Exceptions\AmbiguousArgumentMatchException.cs" />
     <Compile Include="BeforeMappingAttribute.cs" />
     <Compile Include="AfterMappingAttribute.cs" />
-    <Compile Include="BothArgumentsAreTargetsException.cs" />
-    <Compile Include="BothArgumentsAreSourcesException.cs" />
-    <Compile Include="ValueTypeArgLifeCycleFunction.cs" />
+    <Compile Include="Exceptions\BothArgumentsAreTargetsException.cs" />
+    <Compile Include="Exceptions\BothArgumentsAreSourcesException.cs" />
+    <Compile Include="Exceptions\ValueTypeArgLifecycleFunctionException.cs" />
     <Compile Include="TargetAttribute.cs" />
     <Compile Include="SourceAttribute.cs" />
     <Compile Include="Engine\Extensions\EmitLifeCycleFuncsExtensions.cs" />
@@ -58,16 +58,16 @@
     <Compile Include="Engine\Extensions\AssignmentExtensions.cs" />
     <Compile Include="Engine\Extensions\PropertyInfoExtensions.cs" />
     <Compile Include="MapStrategyAttribute.cs" />
-    <Compile Include="CouldNotMatchCustomMapException.cs" />
-    <Compile Include="InvalidArgCountLifeCycleFunction.cs" />
-    <Compile Include="StaticCustomMapFoundException.cs" />
+    <Compile Include="Exceptions\CouldNotMatchCustomMapException.cs" />
+    <Compile Include="Exceptions\InvalidArgCountLifeCycleFunctionException.cs" />
+    <Compile Include="Exceptions\StaticCustomMapFoundException.cs" />
     <Compile Include="Strategy.cs" />
     <Compile Include="Pass.cs" />
     <Compile Include="Engine\PassOnEngine.cs" />
     <Compile Include="PassOnMixins.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TooManyArgsCustomMapException.cs" />
-    <Compile Include="TypeMixins.cs" />
+    <Compile Include="Exceptions\TooManyArgsCustomMapException.cs" />
+    <Compile Include="Utilities\TypeMixins.cs" />
     <Compile Include="Utilities\IterateThrough.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

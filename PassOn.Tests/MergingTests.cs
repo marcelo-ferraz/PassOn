@@ -18,7 +18,12 @@ namespace PassOn.Tests
                 DateTime.Now;
 
             var @base =
-                new BaseClass { Int = 1, String = "something" };
+                new BaseClass { 
+                    Int = 1,
+                    String = "something",
+                    // Numbers = new List<int> { 1, 2, 3 },
+                    List = new List<BaseClass.SubClass> { new BaseClass.SubClass() { Value = 1 } },
+                };
 
             var inherited =
                 new InheritedClass { Date = date };
@@ -26,16 +31,13 @@ namespace PassOn.Tests
             var inheritedHashCode =
                 inherited.GetHashCode();
 
-            Assert.True(string.IsNullOrEmpty(inherited.String));
-
             var newValue =
                 Pass.Onto(@base, inherited);
 
-            Assert.False(string.IsNullOrEmpty(inherited.String));
-            Assert.That(inherited.Int, Is.EqualTo(1));
-            Assert.That(inherited.Date, Is.EqualTo(date));
-            Assert.That(inherited.GetHashCode(), Is.EqualTo(inheritedHashCode));
-            Assert.That(newValue.GetHashCode(), Is.EqualTo(inheritedHashCode));
+            Assert.True(string.IsNullOrEmpty(inherited.String));
+            Assert.That(newValue.Int, Is.EqualTo(1));
+            Assert.That(newValue.Date, Is.EqualTo(date));
+            Assert.That(newValue.GetHashCode(), Is.Not.EqualTo(inheritedHashCode));
         }
 
 
@@ -44,12 +46,8 @@ namespace PassOn.Tests
         {
             var @base =
                 new BaseClass { Int = 1, String = "something" };
-                     
-            var mergedValue = Pass.Onto<BaseClass, InheritedClass>(@base, null);
-
-            Assert.That(mergedValue.String, Is.EqualTo(@base.String));
-            Assert.That(mergedValue.Int, Is.EqualTo(@base.Int));
-            Assert.That(mergedValue.GetHashCode(), Is.Not.EqualTo(@base.GetHashCode()));
+            
+            Assert.Throws<ArgumentNullException>(() => Pass.Onto<BaseClass, InheritedClass?>(@base, null));
         }
 
         [Test]
@@ -58,18 +56,16 @@ namespace PassOn.Tests
             var expected =
                 new InheritedClass { Date = DateTime.Now };
 
-            var result = Pass
-                .Onto<BaseClass?, InheritedClass>(null, expected);                
+            Assert.Throws<ArgumentNullException>(
+                () => Pass.Onto<BaseClass?, InheritedClass>(null, expected));
 
-            Assert.That(result.GetHashCode(), Is.Not.EqualTo(expected.GetHashCode()));
-            Assert.That(result.Date, Is.EqualTo(expected.Date));
         }
 
         [Test]
         public void MergingWithNullsReturnsAnInstance()
         {
-            var result = Pass.Onto<BaseClass?, DifferentClass?>(null, null);
-            Assert.IsNotNull(result);           
+            Assert.Throws<ArgumentNullException>(
+                () => Pass.Onto<BaseClass?, DifferentClass?>(null, null));
         }
     }
 }

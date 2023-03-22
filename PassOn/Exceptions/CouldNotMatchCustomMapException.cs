@@ -1,7 +1,7 @@
 ﻿using System;
 
 
-namespace PassOn
+namespace PassOn.Exceptions
 {
     public class CustomMapNoMatchException<T> : Exception
     {
