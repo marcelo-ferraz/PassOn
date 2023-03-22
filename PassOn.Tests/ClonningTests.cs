@@ -9,7 +9,7 @@ namespace PassOn.Tests
         public void ClonningTest()
         {
             var @base =
-                new BaseClass { Int = 1, String = "something" };
+                new Inheritance.ComplexBase { Int = 1, String = "something" };
             
             var newValue =
                 Pass.On(@base);
@@ -22,13 +22,13 @@ namespace PassOn.Tests
         [Test]
         public void ClonningWithNullParameter()
         {
-            Assert.Throws<ArgumentNullException>(() => Pass.On<BaseClass?>(null));            
+            Assert.Throws<ArgumentNullException>(() => Pass.On<Inheritance.ComplexBase?>(null));            
         }
 
         [Test]
         public void ShallowClonningWithNullParameter()
         {
-            var result = Pass.On<BaseClass?>(null, Strategy.Shallow);
+            var result = Pass.On<Inheritance.ComplexBase?>(null, Strategy.Shallow);
             Assert.IsNotNull(result);
         }
 
@@ -39,33 +39,26 @@ namespace PassOn.Tests
             var date =
                 DateTime.Now;
 
-            var inherited = new InheritedClass
+            var inherited = new Inheritance.Simple
             {
-                // Int = 1,
+                Int = 1,
                 String = "something",
-                // Date = date,
-                // ##########################################
-                // ##########################################
-                // ##########################################
-                // Numbers = new List<int> { 1, 2, 3 }, //
-                // this is undergoing the deepmap, whereas should be going through the value passing emission
-                // ##########################################
-                // ##########################################
-                // ##########################################
-                //List = new List<BaseClass.SubClass> { new BaseClass.SubClass() { Value = 1 } },
-                //List2Array = new List<BaseClass.SubClass> { new BaseClass.SubClass() { Value = 2 } },
-                //Array = new BaseClass.SubClass[] { new BaseClass.SubClass() { Value = 3 } },
-                //Array2List = new BaseClass.SubClass[] { new BaseClass.SubClass() { Value = 4 } },
+                Date = date,
+                Numbers = new List<int> { 1, 2, 3 },
+                List = new List<Inheritance.IntWrapper> { new Inheritance.IntWrapper() { Value = 1 } },
+                SecondArray = new List<Inheritance.IntWrapper> { new Inheritance.IntWrapper() { Value = 2 } },
+                Array = new Inheritance.IntWrapper[] { new Inheritance.IntWrapper() { Value = 3 } },
+                SecondList = new Inheritance.IntWrapper[] { new Inheritance.IntWrapper() { Value = 4 } },
             };
 
             var engine = new PassOnEngine();
 
             var diffValue =
-                engine.MapObjectWithILDeep<InheritedClass, DifferentClass>(inherited);
+                engine.MapObjectWithILDeep<Inheritance.Simple, ComplexClass>(inherited);
 
             Assert.False(string.IsNullOrEmpty(diffValue.String));
             Assert.That(diffValue.String, Is.EqualTo(inherited.String));
-            // Assert.That(diffValue.Data, Is.EqualTo(inherited.Date));
+            Assert.That(diffValue.Data, Is.EqualTo(inherited.Date));
         }
 
         [Test]
@@ -73,13 +66,13 @@ namespace PassOn.Tests
             var rdn = new Random();
 
             var obj =
-                new CyclicalDependencyParent()
+                new CyclicalDependency.Parent()
                 {
                     Id = rdn.Next(),
                 };
 
 
-            obj.Child = new CyclicalDependencyChild {
+            obj.Child = new CyclicalDependency.Child {
                 Id = rdn.Next(),
                 Parent = obj
             };
@@ -87,7 +80,7 @@ namespace PassOn.Tests
             var engine = new PassOnEngine();
 
             Assert.Throws<StackOverflowException>(
-                () =>  engine.MapObjectWithILDeep<CyclicalDependencyParent, CyclicalDependencyParent>(obj)
+                () =>  engine.MapObjectWithILDeep<CyclicalDependency.Parent, CyclicalDependency.Parent>(obj)
             );
         }
     }

@@ -42,16 +42,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Engine\Internals\InternalRefMappers.cs" />
+    <Compile Include="Engine\Internals\InternalValueMappers.cs" />
+    <Compile Include="Engine\Internals\InternalMapperFactory.cs" />
     <Compile Include="Exceptions\AmbiguousArgumentMatchException.cs" />
     <Compile Include="BeforeMappingAttribute.cs" />
     <Compile Include="AfterMappingAttribute.cs" />
     <Compile Include="Exceptions\BothArgumentsAreTargetsException.cs" />
     <Compile Include="Exceptions\BothArgumentsAreSourcesException.cs" />
     <Compile Include="Exceptions\ValueTypeArgLifecycleFunctionException.cs" />
+    <Compile Include="MapperFactories.cs" />
     <Compile Include="TargetAttribute.cs" />
     <Compile Include="SourceAttribute.cs" />
     <Compile Include="Engine\Extensions\EmitLifeCycleFuncsExtensions.cs" />
-    <Compile Include="Engine\Extensions\CopyExtensions.cs" />
     <Compile Include="Engine\Extensions\TypeExtensions.cs" />
     <Compile Include="Engine\Match.cs" />
     <Compile Include="Engine\StrategyUtilities.cs" />
@@ -70,6 +73,7 @@
     <Compile Include="Utilities\TypeMixins.cs" />
     <Compile Include="Utilities\IterateThrough.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

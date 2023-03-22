@@ -18,15 +18,15 @@ namespace PassOn.Tests
                 DateTime.Now;
 
             var @base =
-                new BaseClass { 
+                new Inheritance.ComplexBase { 
                     Int = 1,
                     String = "something",
                     // Numbers = new List<int> { 1, 2, 3 },
-                    List = new List<BaseClass.SubClass> { new BaseClass.SubClass() { Value = 1 } },
+                    List = new List<Inheritance.IntWrapper> { new Inheritance.IntWrapper() { Value = 1 } },
                 };
 
             var inherited =
-                new InheritedClass { Date = date };
+                new Inheritance.Simple { Date = date };
 
             var inheritedHashCode =
                 inherited.GetHashCode();
@@ -45,19 +45,19 @@ namespace PassOn.Tests
         public void MergingWithNullDestinationWillReturnAnClonedDestination()
         {
             var @base =
-                new BaseClass { Int = 1, String = "something" };
+                new Inheritance.ComplexBase { Int = 1, String = "something" };
             
-            Assert.Throws<ArgumentNullException>(() => Pass.Onto<BaseClass, InheritedClass?>(@base, null));
+            Assert.Throws<ArgumentNullException>(() => Pass.Onto<Inheritance.ComplexBase, Inheritance.Simple?>(@base, null));
         }
 
         [Test]
         public void MergingWithNullSourceWillReturnAnClonedDestination()
         {
             var expected =
-                new InheritedClass { Date = DateTime.Now };
+                new Inheritance.Simple { Date = DateTime.Now };
 
             Assert.Throws<ArgumentNullException>(
-                () => Pass.Onto<BaseClass?, InheritedClass>(null, expected));
+                () => Pass.Onto<Inheritance.ComplexBase?, Inheritance.Simple>(null, expected));
 
         }
 
@@ -65,7 +65,7 @@ namespace PassOn.Tests
         public void MergingWithNullsReturnsAnInstance()
         {
             Assert.Throws<ArgumentNullException>(
-                () => Pass.Onto<BaseClass?, DifferentClass?>(null, null));
+                () => Pass.Onto<Inheritance.ComplexBase?, ComplexClass?>(null, null));
         }
     }
 }
