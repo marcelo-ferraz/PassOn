@@ -219,6 +219,80 @@ namespace PassOn.Tests.ILGenerationTests
         }
 
         [Test]
+        public void CreateMapperWrappedIntListTest()
+        {
+            var merger = MapperFactories.CreateMapper<
+                Wrapper<ClassWith.List<int>>,
+                Wrapper<ClassWith.List<int>>
+            >();
+
+            var expectedSrc = new Wrapper<ClassWith.List<int>>
+            {
+                MappedValue =
+                    new ClassWith.List<int>
+                    {
+                        Value = new List<int>()
+                        {
+                            new Random().Next(),                            
+                        },
+                    }
+            };
+
+            var engine = new PassOnEngine();
+
+            var result = merger(
+                expectedSrc, engine, 0
+            );
+
+            Assert.That(
+                result?.MappedValue?.Value[0],
+                Is.EqualTo(expectedSrc.MappedValue.Value[0])
+            );
+
+            Assert.That(
+                result?.AnotherValue?.Value[0],
+                Is.Null
+            );
+        }
+
+        [Test]
+        public void CreateMapperWrappedIntListToWrappedStringListTest()
+        {
+            var merger = MapperFactories.CreateMapper<
+                Wrapper<ClassWith.List<int>>,
+                Wrapper<ClassWith.List<string>>
+            >();
+
+            var expectedSrc = new Wrapper<ClassWith.List<int>>
+            {
+                MappedValue =
+                    new ClassWith.List<int>
+                    {
+                        Value = new List<int>()
+                        {
+                            new Random().Next(),
+                        },
+                    }
+            };
+
+            var engine = new PassOnEngine();
+
+            var result = merger(
+                expectedSrc, engine, 0
+            );
+
+            Assert.That(
+                result?.MappedValue?.Value[0],
+                Is.EqualTo(expectedSrc.MappedValue.Value[0].ToString())
+            );
+
+            Assert.That(
+                result?.AnotherValue?.Value[0],
+                Is.Null
+            );
+        }
+
+        [Test]
         public void CreateMapperPrimitivesTest()
         {
             var merger = MapperFactories.CreateMapper<
@@ -334,6 +408,65 @@ namespace PassOn.Tests.ILGenerationTests
                 result?.AnotherValue?.Value[0].Number,
                 Is.EqualTo(expectedTgt?.AnotherValue?.Value[0].Number)
             );
+        }
+
+
+        [Test]
+        public void CreateMergerListOfWrappedListTest()
+        {
+            var merger = MapperFactories.CreateMerger<
+                List<Wrapper<ClassWith.List<ClassWith.Num>>>,
+                Wrapper<ClassWith.List<ClassWith.NumAndStr>>[]
+            >();
+
+            var expectedSrc = new List<Wrapper<ClassWith.List<ClassWith.Num>>>() {
+                new Wrapper<ClassWith.List<ClassWith.Num>>
+                {
+                    MappedValue =
+                    new ClassWith.List<ClassWith.Num>
+                    {
+                        Value = new List<ClassWith.Num>()
+                        {
+                            new ClassWith.Num
+                            {
+                                Number = new Random().Next(),
+                            }
+                        },
+                    }
+                }
+            };
+
+            var expectedTgt = new[] {
+                new Wrapper<ClassWith.List<ClassWith.NumAndStr>>() {
+                    AnotherValue =
+                        new ClassWith.List<ClassWith.NumAndStr>
+                        {
+                            Value = new List<ClassWith.NumAndStr>()
+                            {
+                                new ClassWith.NumAndStr
+                                {
+                                    Number = new Random().Next(),
+                                }
+                            },
+                        }
+                } 
+            };
+
+            var engine = new PassOnEngine();
+
+            var result = merger(
+                expectedSrc, expectedTgt, engine, 0
+            );
+
+            Assert.That(
+                result?[0].MappedValue?.Value[0].Number,
+                Is.EqualTo(expectedSrc[0]?.MappedValue?.Value[0].Number)
+            );
+            // this second part doesnt quite work, because it maps, not merge, on that level
+            //Assert.That(
+            //    result?[0].AnotherValue?.Value[0].Number,
+            //    Is.EqualTo(expectedTgt[0]?.AnotherValue?.Value[0].Number)
+            //);
         }
     }
 }

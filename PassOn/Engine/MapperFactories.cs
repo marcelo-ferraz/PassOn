@@ -5,6 +5,8 @@ using System;
 using System.Collections;
 using System.Reflection;
 using System.Reflection.Emit;
+using PassOn.SDILReader;
+using PassOn.Utilities;
 
 namespace PassOn
 {
@@ -31,6 +33,17 @@ namespace PassOn
 
             il.TryEmitBeforeFuncs<Source, Target>();
 
+            if (typeof(IEnumerable).IsAssignableFrom(typeof(Target)))
+            {
+                var (map, rec) = InternalMapperFactory.GetMerger(typeof(Source), typeof(Target));
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldarg_1);
+                il.Emit(OpCodes.Ldarg_2); // engine                                          
+                il.Emit(OpCodes.Ldarg_3); // recursionIndex
+                il.Emit(OpCodes.Call, map);
+                il.Emit(OpCodes.Stloc, resultLocal);
+            }
+
             Match.Properties<Source, Target>(
                 (src, tgt) =>
                 {
@@ -54,7 +67,7 @@ namespace PassOn
                     //Inspection.Deep
                     if (src.PropertyType.IsClass)
                     {
-                        EmitReferenceTypeCopy(il, dynMethod, resultLocal, src, tgt);
+                        EmitReferenceTypeCopy(il, dynMethod, resultLocal, src, tgt, isForMerging: true);
                         return;
                     }
                 }, ignoreType: true);
@@ -69,62 +82,11 @@ namespace PassOn
 
             mapper = dynMethod.CreateDelegate(delType);
 
+            //var mr = new MethodBodyReader(dynMethod);
+            //// get the text representation of the msil
+            //string msil = mr.GetBodyCode();
+
             return (Func<Source, Target, PassOnEngine, int, Target>)mapper;
-        }
-
-        internal static void EmitMapTargetToResult<Target>(ILGenerator il, LocalBuilder resultLocal)
-        {
-            var valueIsNullLabel = il.DefineLabel();
-            var valueIsNotNullLabel = il.DefineLabel();
-
-            (
-                MethodInfo mapTarget,
-                bool isRecursive
-            ) = InternalMapperFactory.GetMapper(
-                typeof(Target), typeof(Target), rawClone: true);
-
-            //IL_0000: nop
-            il.Emit(OpCodes.Nop);
-            //IL_0001: ldarg.1
-            il.Emit(OpCodes.Ldarg_1);
-            //IL_0002: ldnull
-            il.Emit(OpCodes.Ldnull);
-            //IL_0003: ceq
-            il.Emit(OpCodes.Ceq);
-            //IL_0005: stloc.1
-            //// sequence point: hidden
-            //IL_0006: ldloc.1
-            //IL_0007: brfalse.s IL_0013
-            il.Emit(OpCodes.Brfalse_S, valueIsNotNullLabel);
-
-            //IL_0009: nop
-            //IL_000a: newobj instance void C/ Target::.ctor()
-            il.Emit(OpCodes.Newobj, typeof(Target).GetConstructor(Type.EmptyTypes));
-            // il.Construct<Target>(); // maybe here?
-
-            //IL_000f: stloc.0
-            il.Emit(OpCodes.Stloc, resultLocal);
-            //IL_0010: nop
-            //// sequence point: hidden
-            //IL_0011: br.s IL_001e
-            il.Emit(OpCodes.Br_S, valueIsNullLabel);
-
-            //IL_0013: nop
-            il.MarkLabel(valueIsNotNullLabel);
-            il.Emit(OpCodes.Nop);
-            //IL_0014: ldarg.1
-            il.Emit(OpCodes.Ldarg_1); // target (merging)
-            //IL_0015: ldarg.2
-            il.Emit(OpCodes.Ldarg_2); // engine
-            //IL_0016: ldarg.3
-            il.Emit(OpCodes.Ldarg_3); // recursionIndex
-            //IL_0017: call!!1 C::MapObjectWithILDeepInternal <class C/Target, class C/Target>(!!0, class C/Engine, int32)
-            il.Emit(OpCodes.Call, mapTarget);
-            //IL_001c: stloc.0
-            il.Emit(OpCodes.Stloc, resultLocal);
-            //IL_001d: nop
-            il.Emit(OpCodes.Nop);
-            il.MarkLabel(valueIsNullLabel);
         }
 
         public static Func<Source, PassOnEngine, int, Target> CreateMapper<Source, Target>()
@@ -250,6 +212,75 @@ namespace PassOn
             return (Func<Source, PassOnEngine, int, Target>)mapper;
         }
 
+        internal static void EmitMapTargetToResult<Target>(ILGenerator il, LocalBuilder resultLocal)
+        {
+            //il.Emit(OpCodes.Ldarg_1);
+            //il.Emit(OpCodes.Stloc, resultLocal);
+            //return;
+
+
+            var valueIsNullLabel = il.DefineLabel();
+            var valueIsNotNullLabel = il.DefineLabel();
+
+            (
+                MethodInfo mapTarget,
+                bool isRecursive
+            ) = InternalMapperFactory.GetMapper(
+                typeof(Target), typeof(Target), rawClone: true);
+
+            //IL_0000: nop
+            il.Emit(OpCodes.Nop);
+            //IL_0001: ldarg.1
+            il.Emit(OpCodes.Ldarg_1);
+            //IL_0002: ldnull
+            il.Emit(OpCodes.Ldnull);
+            //IL_0003: ceq
+            il.Emit(OpCodes.Ceq);
+            //IL_0005: stloc.1
+            //// sequence point: hidden
+            //IL_0006: ldloc.1
+            //IL_0007: brfalse.s IL_0013
+            il.Emit(OpCodes.Brfalse_S, valueIsNotNullLabel);
+
+            //IL_0009: nop
+            //IL_000a: newobj instance void C/ Target::.ctor()
+            if (typeof(Target).IsArray)
+            {
+                il.Emit(OpCodes.Ldc_I4_S, 255);
+                il.Emit(OpCodes.Newarr, typeof(Target).GetElementType());
+            }
+            else
+            {
+                il.Emit(OpCodes.Newobj, typeof(Target).GetConstructor(Type.EmptyTypes));
+            }
+
+            // il.Construct<Target>(); // maybe here?
+
+            //IL_000f: stloc.0
+            il.Emit(OpCodes.Stloc, resultLocal);
+            //IL_0010: nop
+            //// sequence point: hidden
+            //IL_0011: br.s IL_001e
+            il.Emit(OpCodes.Br_S, valueIsNullLabel);
+
+            //IL_0013: nop
+            il.MarkLabel(valueIsNotNullLabel);
+            il.Emit(OpCodes.Nop);
+            //IL_0014: ldarg.1
+            il.Emit(OpCodes.Ldarg_1); // target (merging)
+            //IL_0015: ldarg.2
+            il.Emit(OpCodes.Ldarg_2); // engine
+            //IL_0016: ldarg.3
+            il.Emit(OpCodes.Ldarg_3); // recursionIndex
+            //IL_0017: call!!1 C::MapObjectWithILDeepInternal <class C/Target, class C/Target>(!!0, class C/Engine, int32)
+            il.Emit(OpCodes.Call, mapTarget);
+            //IL_001c: stloc.0
+            il.Emit(OpCodes.Stloc, resultLocal);
+            //IL_001d: nop
+            il.Emit(OpCodes.Nop);
+            il.MarkLabel(valueIsNullLabel);
+        }
+
         internal static void EmitReferenceTypeCopy(
             ILGenerator il,
             DynamicMethod dynMethod,
@@ -269,10 +300,20 @@ namespace PassOn
             var tgtTypeIsIEnumerable =
                 typeof(IEnumerable).IsAssignableFrom(tgtType);
 
+            var isMergeable = isForMerging;
+
+            if (isForMerging && (srcTypeIsIEnumerable || tgtTypeIsIEnumerable)) {
+                var (srcItemType, tgtItemType) =
+                    (srcType, tgtType).GetCollectionItemTypes();
+                isMergeable = !srcItemType.IsValueType && !tgtItemType.IsValueType;
+            }
+
             (
                 MethodInfo internalMapFunc,
                 bool isRecursive
-            ) = InternalMapperFactory.GetMapper(source, target);
+            ) = isForMerging 
+                ? InternalMapperFactory.GetMerger(source, target)
+                : InternalMapperFactory.GetMapper(source, target);
 
             var args = dynMethod.GetParameters();
             var recursionIndexArgIndex = args.Length - 1;
@@ -293,9 +334,9 @@ namespace PassOn
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Callvirt, source.GetGetMethod());
 
-            if (isForMerging)
+            if (isMergeable)
             {
-                il.Emit(OpCodes.Ldarg_1);
+                il.Emit(OpCodes.Ldloc, resultLocal);
                 il.Emit(OpCodes.Callvirt, target.GetGetMethod());
             }
 

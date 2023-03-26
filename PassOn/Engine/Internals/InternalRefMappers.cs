@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,7 +25,7 @@ namespace PassOn.Engine.Internals
 
 
         /// <summary>
-        /// Maps or merges all the values of an IEnumerable to another list of different types
+        /// Merges or merges all the values of an IEnumerable to another list of different types
         /// </summary>
         /// <typeparam name="Target">The result type</typeparam>
         /// <param name="enumerable">the source</param>
@@ -53,16 +54,9 @@ namespace PassOn.Engine.Internals
         public static IEnumerable<Target> MapArrayToIEnumerable<Source, Target>(Source[] array, PassOnEngine engine, int recursionIndex)
             where Target : class
         {
-            if (array == null) { yield break; }
-
-            var mapper = engine.GetOrCreateInternalMapper<Source, Target>();
-
-            for (int i = 0; i < array.Length; i++)
-            {
-                yield return mapper(array[i], engine, recursionIndex);
-            }
-
-            yield break;
+            return MapIEnumerableToIEnumerable<Source, Target>(
+                array, engine, recursionIndex
+            );
         }
 
         /// <summary>
@@ -71,7 +65,7 @@ namespace PassOn.Engine.Internals
         /// <typeparam name="Target">The result type</typeparam>
         /// <param name="enumerable">the source</param>
         /// <returns>An array of the target type</returns>
-        public static List<Target> MapIEnumerableToList<Source, Target>(IEnumerable<Source> enumerable, PassOnEngine engine, int recursionIndex)
+        public static IList<Target> MapIEnumerableToIList<Source, Target>(IEnumerable<Source> enumerable, PassOnEngine engine, int recursionIndex)
         {
             return MapIEnumerableToIEnumerable<Source, Target>(
                 enumerable, engine, recursionIndex
@@ -84,7 +78,7 @@ namespace PassOn.Engine.Internals
         /// <typeparam name="Target">The result type</typeparam>
         /// <param name="array">left array</param>
         /// <returns>A list of the target type</returns>
-        public static List<Target> MapArrayToList<Source, Target>(Source[] array, PassOnEngine engine, int recursionIndex)
+        public static IList<Target> MapArrayToIList<Source, Target>(Source[] array, PassOnEngine engine, int recursionIndex)
             where Target : class
         {
             return MapIEnumerableToIEnumerable<Source, Target>(

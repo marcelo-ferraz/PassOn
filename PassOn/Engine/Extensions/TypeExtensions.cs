@@ -32,5 +32,20 @@ namespace PassOn.EngineExtensions
                 ((Func<Type, object>)FormatterServices.GetSafeUninitializedObject).Method);
             il.Emit(OpCodes.Castclass, type);
         }
+
+        internal static (Type, Type) GetCollectionItemTypes(this (Type, Type) tuple)
+        {
+            var (source, target) = tuple;
+
+            var srcItemType = source.IsArray
+                ? source.GetElementType()
+                : source.GetGenericArguments()[0];
+
+            var tgtItemType = target.IsArray
+                ? target.GetElementType()
+                : target.GetGenericArguments()[0];
+
+            return (srcItemType, tgtItemType);
+        }
     }
 }

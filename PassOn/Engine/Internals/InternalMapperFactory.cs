@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PassOn.EngineExtensions;
+using System;
 using System.Collections;
 using System.Reflection;
 
@@ -28,45 +29,19 @@ namespace PassOn.Engine.Internals
                 return (objMapper, true);
             }
 
-            var srcItemType = source.IsArray
-                ? source.GetElementType()
-                : source.GetGenericArguments()[0];
+            string result = GetLabel(target);
+            string mapperName = $"MapIEnumerableTo{result}";
 
-            var tgtItemType = target.IsArray
-                ? target.GetElementType()
-                : target.GetGenericArguments()[0];
-
-            MethodInfo mapper = null;
+            var (srcItemType, tgtItemType) =
+                (source, target).GetCollectionItemTypes();
 
             var mappersHolderType =
                 (srcItemType.IsValueType || tgtItemType.IsValueType)
                 ? typeof(InternalValueMappers)
                 : typeof(InternalRefMappers);
 
-            if (srcTypeIsIEnumerable && target.IsArray)
-            {
-                mapper = mappersHolderType
-                    .GetMethod("MapIEnumerableToArray")
-                    .MakeGenericMethod(srcItemType, tgtItemType);
-            }
-            else if (tgtTypeIsIEnumerable && source.IsArray)
-            {
-                mapper = mappersHolderType
-                    .GetMethod("MapArrayToIEnumerable")
-                    .MakeGenericMethod(srcItemType, tgtItemType);
-            }
-            else if (source.IsArray && target.IsArray)
-            {
-                mapper = mappersHolderType
-                    .GetMethod("MapIEnumerableToArray")
-                    .MakeGenericMethod(srcItemType, tgtItemType);
-            }
-            else if (srcTypeIsIEnumerable && tgtTypeIsIEnumerable)
-            {
-                mapper = mappersHolderType
-                    .GetMethod("MapIEnumerableToList")
-                    .MakeGenericMethod(srcItemType, tgtItemType);
-            }
+            var mapper = mappersHolderType
+                   .GetMethod(mapperName);
 
             if (mapper == null)
             {
@@ -75,7 +50,77 @@ namespace PassOn.Engine.Internals
                 );
             }
 
+            mapper = mapper.MakeGenericMethod(srcItemType, tgtItemType);
+
             return (mapper, false);
+        }
+
+        internal static (MethodInfo, bool) GetMerger(PropertyInfo source, PropertyInfo target)
+        {
+            return GetMerger(source.PropertyType, target.PropertyType);
+        }
+
+        internal static (MethodInfo, bool) GetMerger(Type source, Type target)
+        {
+            var srcTypeIsIEnumerable = typeof(IEnumerable).IsAssignableFrom(source);
+            var tgtTypeIsIEnumerable = typeof(IEnumerable).IsAssignableFrom(target);
+
+            if (!srcTypeIsIEnumerable && !tgtTypeIsIEnumerable)
+            {
+                var objMapper = typeof(InternalRefMergers)
+                    .GetMethod("MergeObjectWithILDeepInternal")
+                    .MakeGenericMethod(source, target);
+                return (objMapper, true);
+            }
+
+            var (srcItemType, tgtItemType) =
+                (source, target).GetCollectionItemTypes();
+
+            var itemIsValueType = (srcItemType.IsValueType || tgtItemType.IsValueType);
+
+            var mappersHolderType = itemIsValueType
+                ? typeof(InternalValueMappers)
+                : typeof(InternalRefMergers);
+
+            var operation = itemIsValueType ? "Map" : "Merge";
+            string result = GetLabel(target);
+
+            if (target.IsArray && typeof(IList).IsAssignableFrom(source)) { }
+
+            var mergerName = $"{operation}IEnumerableTo{result}";
+
+            var merger = mappersHolderType.GetMethod(mergerName);
+
+            if (merger == null)
+            {
+                throw new NotSupportedException(
+                    $"This merging \"{source.Name}\" <-> \"{target.Name}\" is not supported!"
+                );
+            }
+
+            merger = merger.MakeGenericMethod(srcItemType, tgtItemType);
+
+            return (merger, false);
+        }
+
+        private static string GetLabel(Type source)
+        {
+            if (source.IsArray)
+            {
+                return "Array";
+            }
+            
+            if (typeof(IList).IsAssignableFrom(source))
+            {
+                return "IList";
+            }
+
+            else if (typeof(IEnumerable).IsAssignableFrom(source))
+            {
+                return "IEnumerable";
+            }
+
+            return null;
         }
     }
 }
