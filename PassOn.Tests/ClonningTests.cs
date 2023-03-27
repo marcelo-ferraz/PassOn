@@ -1,10 +1,4 @@
-﻿using NUnit.Framework;
-using PassOn.Tests.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using PassOn.Tests.Models;
 
 namespace PassOn.Tests
 {
@@ -15,22 +9,29 @@ namespace PassOn.Tests
         public void ClonningTest()
         {
             var @base =
-                new BaseClass { Int = 1, String = "something" };
+                new Inheritance.ComplexBase { Int = 1, String = "something" };
             
             var newValue =
-                Pass.On<BaseClass>(@base);
+                Pass.On(@base);
 
-            Assert.AreEqual(@base.String, newValue.String);
-            Assert.AreEqual(@base.Int, newValue.Int);
-            Assert.AreNotEqual(@base.GetHashCode(), newValue.GetHashCode());
+            Assert.That(newValue.String, Is.EqualTo(@base.String));
+            Assert.That(newValue.Int, Is.EqualTo(@base.Int));
+            Assert.That(newValue.GetHashCode(), Is.Not.EqualTo(@base.GetHashCode()));
         }
 
         [Test]
         public void ClonningWithNullParameter()
         {
-            Assert.IsNotNull(Pass.On<BaseClass>(null));
-            Assert.IsNotNull(Pass.On<BaseClass>(null, Inspection.Shallow));
+            Assert.Throws<ArgumentNullException>(() => Pass.On<Inheritance.ComplexBase?>(null));            
         }
+
+        [Test]
+        public void ShallowClonningWithNullParameter()
+        {
+            var result = Pass.On<Inheritance.ComplexBase?>(null, Strategy.Shallow);
+            Assert.IsNotNull(result);
+        }
+
 
         [Test]
         public void CloneDifferentObjects()
@@ -38,27 +39,49 @@ namespace PassOn.Tests
             var date =
                 DateTime.Now;
 
-            var inherited = new InheritedClass
+            var inherited = new Inheritance.Simple
             {
                 Int = 1,
                 String = "something",
                 Date = date,
                 Numbers = new List<int> { 1, 2, 3 },
-                List = new List<BaseClass.SubClass> { new BaseClass.SubClass() { Value = 1 } },
-                List2Array = new List<BaseClass.SubClass> { new BaseClass.SubClass() { Value = 2 } },
-                Array = new BaseClass.SubClass[] { new BaseClass.SubClass() { Value = 3 } },
-                Array2List = new BaseClass.SubClass[] { new BaseClass.SubClass() { Value = 4 } }, 
+                List = new List<Inheritance.IntWrapper> { new Inheritance.IntWrapper() { Value = 1 } },
+                SecondArray = new List<Inheritance.IntWrapper> { new Inheritance.IntWrapper() { Value = 2 } },
+                Array = new Inheritance.IntWrapper[] { new Inheritance.IntWrapper() { Value = 3 } },
+                SecondList = new Inheritance.IntWrapper[] { new Inheritance.IntWrapper() { Value = 4 } },
             };
 
-            var inheritedHashCode =
-                inherited.GetHashCode();
+            var engine = new PassOnEngine();
 
             var diffValue =
-                Pass.On<DifferentClass>(inherited);
+                engine.MapObjectWithILDeep<Inheritance.Simple, ComplexClass>(inherited);
 
             Assert.False(string.IsNullOrEmpty(diffValue.String));
-            Assert.AreEqual(inherited.String, diffValue.String);
-            Assert.AreEqual(date, diffValue.Data);
+            Assert.That(diffValue.String, Is.EqualTo(inherited.String));
+            Assert.That(diffValue.Data, Is.EqualTo(inherited.Date));
+        }
+
+        [Test]
+        public void CloneObjectWithCyclicalDependency() {
+            var rdn = new Random();
+
+            var obj =
+                new CyclicalDependency.Parent()
+                {
+                    Id = rdn.Next(),
+                };
+
+
+            obj.Child = new CyclicalDependency.Child {
+                Id = rdn.Next(),
+                Parent = obj
+            };
+
+            var engine = new PassOnEngine();
+
+            Assert.Throws<StackOverflowException>(
+                () =>  engine.MapObjectWithILDeep<CyclicalDependency.Parent, CyclicalDependency.Parent>(obj)
+            );
         }
     }
 }

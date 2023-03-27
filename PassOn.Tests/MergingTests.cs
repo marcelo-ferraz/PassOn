@@ -1,16 +1,16 @@
-﻿using NUnit.Framework;
-using PassOn.Tests.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using PassOn.Tests.Models;
 
 namespace PassOn.Tests
 {
     [TestFixture]
     public class MergingTests
     {
+        [TearDown]
+        public void TearDown()
+        {
+            Pass.ClearCache();
+        }
+
         [Test]
         public void MergingTest()
         {
@@ -18,46 +18,54 @@ namespace PassOn.Tests
                 DateTime.Now;
 
             var @base =
-                new BaseClass { Int = 1, String = "something" };
+                new Inheritance.ComplexBase { 
+                    Int = 1,
+                    String = "something",
+                    // Numbers = new List<int> { 1, 2, 3 },
+                    List = new List<Inheritance.IntWrapper> { new Inheritance.IntWrapper() { Value = 1 } },
+                };
 
             var inherited =
-                new InheritedClass { Date = date };
+                new Inheritance.Simple { Date = date };
 
             var inheritedHashCode =
                 inherited.GetHashCode();
 
-            Assert.True(string.IsNullOrEmpty(inherited.String));
-
             var newValue =
                 Pass.Onto(@base, inherited);
 
-            Assert.False(string.IsNullOrEmpty(inherited.String));
-            Assert.AreEqual(1, inherited.Int);
-            Assert.AreEqual(date, inherited.Date);
-            Assert.AreEqual(inheritedHashCode, inherited.GetHashCode());
-            Assert.AreEqual(inheritedHashCode, newValue.GetHashCode());
+            Assert.True(string.IsNullOrEmpty(inherited.String));
+            Assert.That(newValue.Int, Is.EqualTo(1));
+            Assert.That(newValue.Date, Is.EqualTo(date));
+            Assert.That(newValue.GetHashCode(), Is.Not.EqualTo(inheritedHashCode));
+        }
+
+
+        [Test]
+        public void MergingWithNullDestinationWillReturnAnClonedDestination()
+        {
+            var @base =
+                new Inheritance.ComplexBase { Int = 1, String = "something" };
+            
+            Assert.Throws<ArgumentNullException>(() => Pass.Onto<Inheritance.ComplexBase, Inheritance.Simple?>(@base, null));
         }
 
         [Test]
-        public void MergingWithNullParameter()
+        public void MergingWithNullSourceWillReturnAnClonedDestination()
         {
-            var date =
-                DateTime.Now;
+            var expected =
+                new Inheritance.Simple { Date = DateTime.Now };
 
-            var @base =
-                new BaseClass { Int = 1, String = "something" };
+            Assert.Throws<ArgumentNullException>(
+                () => Pass.Onto<Inheritance.ComplexBase?, Inheritance.Simple>(null, expected));
 
-            var inherited =
-                new InheritedClass { Date = date };
+        }
 
-            Assert.IsNotNull(Pass.Onto<DifferentClass>(null, null));
-            Assert.AreNotEqual(Pass.Onto(null, inherited).GetHashCode(), inherited.GetHashCode());
-
-            var mergedValue = Pass.Onto<InheritedClass>(@base, null);
-
-            Assert.AreEqual(@base.String, mergedValue.String);
-            Assert.AreEqual(@base.Int, mergedValue.Int);
-            Assert.AreNotEqual(@base.GetHashCode(), mergedValue.GetHashCode());
+        [Test]
+        public void MergingWithNullsReturnsAnInstance()
+        {
+            Assert.Throws<ArgumentNullException>(
+                () => Pass.Onto<Inheritance.ComplexBase?, ComplexClass?>(null, null));
         }
     }
 }

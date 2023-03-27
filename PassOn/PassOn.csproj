@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>PassOn</RootNamespace>
     <AssemblyName>PassOn</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,6 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -40,15 +42,40 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CloneAttribute.cs" />
-    <Compile Include="Inspection.cs" />
+    <Compile Include="Engine\Internals\InternalRefMergers.cs" />
+    <Compile Include="Engine\Internals\InternalRefMappers.cs" />
+    <Compile Include="Engine\Internals\InternalValueMappers.cs" />
+    <Compile Include="Engine\Internals\InternalMapperFactory.cs" />
+    <Compile Include="Exceptions\AmbiguousArgumentMatchException.cs" />
+    <Compile Include="BeforeMappingAttribute.cs" />
+    <Compile Include="AfterMappingAttribute.cs" />
+    <Compile Include="Exceptions\BothArgumentsAreTargetsException.cs" />
+    <Compile Include="Exceptions\BothArgumentsAreSourcesException.cs" />
+    <Compile Include="Exceptions\ValueTypeArgLifecycleFunctionException.cs" />
+    <Compile Include="Engine\MapperFactories.cs" />
+    <Compile Include="TargetAttribute.cs" />
+    <Compile Include="SourceAttribute.cs" />
+    <Compile Include="Engine\Extensions\EmitLifeCycleFuncsExtensions.cs" />
+    <Compile Include="Engine\Extensions\TypeExtensions.cs" />
+    <Compile Include="Engine\Match.cs" />
+    <Compile Include="Engine\StrategyUtilities.cs" />
+    <Compile Include="Engine\Extensions\AssignmentExtensions.cs" />
+    <Compile Include="Engine\Extensions\PropertyInfoExtensions.cs" />
+    <Compile Include="MapStrategyAttribute.cs" />
+    <Compile Include="Exceptions\CouldNotMatchCustomMapException.cs" />
+    <Compile Include="Exceptions\InvalidArgCountLifeCycleFunctionException.cs" />
+    <Compile Include="Exceptions\StaticCustomMapFoundException.cs" />
+    <Compile Include="Strategy.cs" />
     <Compile Include="Pass.cs" />
-    <Compile Include="PassOnEngine.cs" />
+    <Compile Include="Engine\PassOnEngine.cs" />
     <Compile Include="PassOnMixins.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TypeMixins.cs" />
+    <Compile Include="Exceptions\TooManyArgsCustomMapException.cs" />
+    <Compile Include="Utilities\IEnumerableExtensions.cs" />
+    <Compile Include="Utilities\TypeMixins.cs" />
     <Compile Include="Utilities\IterateThrough.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
