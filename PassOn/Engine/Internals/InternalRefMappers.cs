@@ -11,14 +11,12 @@ namespace PassOn.Engine.Internals
     {
         public static Target MapObjectRawWithILDeepInternal<Source, Target>(Source source, PassOnEngine engine, int recursionIndex)
         {
-            System.Diagnostics.Debugger.Break();
             var mapper = engine.GetOrCreateInternalMapper<Source, Target>(raw: true);
             return mapper(source, engine, recursionIndex);
         }
 
         public static Target MapObjectWithILDeepInternal<Source, Target>(Source source, PassOnEngine engine, int recursionIndex)
         {
-            System.Diagnostics.Debugger.Break();
             var mapper = engine.GetOrCreateInternalMapper<Source, Target>();
             return mapper(source, engine, recursionIndex);
         }

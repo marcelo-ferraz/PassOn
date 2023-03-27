@@ -12,7 +12,6 @@ namespace PassOn.Engine.Internals
     {
         public static Target MergeObjectWithILDeepInternal<Source, Target>(Source source, Target target, PassOnEngine engine, int recursionIndex)
         {
-            System.Diagnostics.Debugger.Break();
             var merger = engine.GetOrCreateInternalMerger<Source, Target>();
             return merger(source, target, engine, recursionIndex);
         }

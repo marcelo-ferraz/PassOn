@@ -5,8 +5,6 @@ using System;
 using System.Collections;
 using System.Reflection;
 using System.Reflection.Emit;
-using PassOn.SDILReader;
-using PassOn.Utilities;
 
 namespace PassOn
 {
@@ -81,10 +79,6 @@ namespace PassOn
                 .MakeGenericType(typeof(Source), typeof(Target), typeof(PassOnEngine), typeof(int), typeof(Target));
 
             mapper = dynMethod.CreateDelegate(delType);
-
-            //var mr = new MethodBodyReader(dynMethod);
-            //// get the text representation of the msil
-            //string msil = mr.GetBodyCode();
 
             return (Func<Source, Target, PassOnEngine, int, Target>)mapper;
         }

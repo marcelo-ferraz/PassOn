@@ -52,10 +52,7 @@
     <Compile Include="Exceptions\BothArgumentsAreTargetsException.cs" />
     <Compile Include="Exceptions\BothArgumentsAreSourcesException.cs" />
     <Compile Include="Exceptions\ValueTypeArgLifecycleFunctionException.cs" />
-    <Compile Include="MapperFactories.cs" />
-    <Compile Include="SDIL\Globals.cs" />
-    <Compile Include="SDIL\ILInstruction.cs" />
-    <Compile Include="SDIL\MethodBodyReader.cs" />
+    <Compile Include="Engine\MapperFactories.cs" />
     <Compile Include="TargetAttribute.cs" />
     <Compile Include="SourceAttribute.cs" />
     <Compile Include="Engine\Extensions\EmitLifeCycleFuncsExtensions.cs" />
@@ -75,7 +72,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Exceptions\TooManyArgsCustomMapException.cs" />
     <Compile Include="Utilities\IEnumerableExtensions.cs" />
-    <Compile Include="Utilities\Debugger.cs" />
     <Compile Include="Utilities\TypeMixins.cs" />
     <Compile Include="Utilities\IterateThrough.cs" />
   </ItemGroup>
