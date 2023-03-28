@@ -8,7 +8,7 @@ namespace PassOn.EngineExtensions
     {
         private static PropertyInfo[] GetProperties(Type type)
         {
-            return type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            return type.GetProperties(BindingFlags.Public/* | BindingFlags.NonPublic*/ | BindingFlags.Instance);
         }
 
         internal static void PropertiesNoStrategy<Source, Target>(Action<PropertyInfo, PropertyInfo> whenMatch, bool ignoreType = false)

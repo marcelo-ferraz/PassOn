@@ -52,7 +52,7 @@ namespace PassOn
             );
         }
 
-        public Delegate GetOrCreateShallowMapper<Source, Target>() 
+        public Func<Source, Target> GetOrCreateShallowMapper<Source, Target>() 
         {
             Delegate mapper = null;
 
@@ -61,7 +61,7 @@ namespace PassOn
 
             if (_cachedILShallowMap.TryGetValue(key, out mapper))
             {
-                return mapper;
+                return (Func<Source, Target>)mapper;
             }
 
             var dymMethod = new DynamicMethod(
@@ -104,7 +104,7 @@ namespace PassOn
             mapper = dymMethod.CreateDelegate(delType);
             _cachedILShallowMap.TryAdd(key, mapper);
 
-            return mapper;
+            return (Func<Source, Target>) mapper;
         }
 
         public Target MergeWithILDeep<Source, Target>(Source source, Target target)

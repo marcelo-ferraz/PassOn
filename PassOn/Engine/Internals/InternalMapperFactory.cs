@@ -1,6 +1,7 @@
 ﻿using PassOn.EngineExtensions;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace PassOn.Engine.Internals
@@ -110,7 +111,13 @@ namespace PassOn.Engine.Internals
                 return "Array";
             }
             
-            if (typeof(IList).IsAssignableFrom(source))
+            if (
+                typeof(IList).IsAssignableFrom(source) 
+                || (
+                    source.IsGenericType 
+                    && typeof(IList<>).IsAssignableFrom(source.GetGenericTypeDefinition())
+                )
+            )
             {
                 return "IList";
             }

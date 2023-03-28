@@ -1,6 +1,7 @@
 ﻿using PassOn.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace PassOn
 {
@@ -16,19 +17,10 @@ namespace PassOn
             /// <typeparam name="Target">The result type</typeparam>
             /// <param name="enumerable">the source</param>
             /// <returns>An array of the target type</returns>
-            public static List<Target> ToAListOf<Target>(IEnumerable<Source> enumerable)
+            public static IList<Target> ToAListOf<Target>(IEnumerable<Source> source)
             {
-                if (enumerable == null)
-                { return null; }
-
-                var result = new List<Target>();
-
-                foreach (var item in enumerable)
-                {
-                    result.Add(item.Map<Source, Target>());
-                }
-
-                return result;
+                return engine
+                   .MapObjectWithILDeep<IEnumerable<Source>, IList<Target>>(source);
             }
 
             /// <summary>
@@ -37,19 +29,12 @@ namespace PassOn
             /// <typeparam name="Target">The result type</typeparam>
             /// <param name="array">left array</param>
             /// <returns>A list of the target type</returns>
-            public static List<Target> ToAListOf<Target>(Source[] array)
+            public static IList<Target> ToAListOf<Target>(Source[] source)
                 where Target : class
             {
-                if (array == null) { return null; }
-
-                var result = new List<Target>(array.Length);
-
-                for (int i = 0; i < array.Length; i++)
-                {
-                    result.Add(array[i].Map<Source, Target>());
-                }
-
-                return result;
+                return engine
+                   .MapObjectWithILDeep<Source[], Target[]>(source)
+                   .ToList();
             }
 
             /// <summary>
@@ -60,16 +45,9 @@ namespace PassOn
             /// <returns>An array of the target type</returns>
             public static Target[] ToAnArrayOf<Target>(IEnumerable<Source> source)
             {
-                if (source == null) { return null; }
-
-                var result = new List<Target>();
-
-                foreach (var item in source)
-                {
-                    result.Add(Pass.On<Source, Target>(item));
-                }
-
-                return result.ToArray();
+                return engine
+                   .MapObjectWithILDeep<IEnumerable<Source>, Target[]>(source)
+                   .ToArray();
             }
 
             /// <summary>
@@ -78,20 +56,12 @@ namespace PassOn
             /// <typeparam name="Target">The result type</typeparam>
             /// <param name="array">left array</param>
             /// <returns>An array of the target type</returns>
-            public static Target[] ToAnArrayOf<Target>(Source[] array)
+            public static Target[] ToAnArrayOf<Target>(Source[] source)
                 where Target : class
             {
-                if (array == null) { return null; }
-
-                var result = (Target[])Array.CreateInstance(
-                    typeof(Target), array.Length);
-
-                for (int i = 0; i < array.Length; i++)
-                {
-                    result[i] = array[i].Map<Source,Target>();
-                }
-
-                return result;
+                return engine
+                   .MapObjectWithILDeep<Source[], Target[]>(source)
+                   .ToArray();
             }
 
             /// <summary>
@@ -102,16 +72,9 @@ namespace PassOn
             /// <returns>A list of the target type</returns>
             public static IList<Target> OntoAListOf<Target>(IEnumerable<Source> source, IEnumerable<Target> target)
             {
-                var result = new List<Target>();
-
-                IterateThrough.Both(
-                    source,
-                    target,
-                    both: (src, dest) => result.Add(Pass.Onto<Source, Target>(src, dest)),
-                    onlyLeft: (src) => result.Add(Pass.On<Source, Target>(src)),
-                    onlyRight: (dest) => result.Add(dest));
-
-                return result;
+                return engine
+                   .MergeWithILDeep(source, target)
+                   .ToList();
             }
 
             /// <summary>
@@ -122,16 +85,9 @@ namespace PassOn
             /// <returns>A list of the target type</returns>
             public static IList<Target> OntoAListOf<Target>(IEnumerable<Source> source, Target[] target)
             {
-                var result = new List<Target>();
-
-                IterateThrough.Both(
-                    source,
-                    target,
-                    both: (src, i) => result.Add(Pass.Onto<Source, Target>(src, target[i])),
-                    onlyLeft: (src) => result.Add(Pass.On<Source, Target>(src)),
-                    onlyRight: (i) => result.Add(target[i]));
-
-                return result;
+                return engine
+                   .MergeWithILDeep(source, target)
+                   .ToList();
             }
 
             /// <summary>
@@ -142,19 +98,9 @@ namespace PassOn
             /// <returns>An array of the target type</returns>
             public static Target[] OntoAnArrayOf<Target>(IEnumerable<Source> source, IEnumerable<Target> target)
             {
-                if (source == null)
-                { return System.Linq.Enumerable.ToArray(target); }
-
-                var result = new List<Target>();
-
-                IterateThrough.Both(
-                    source,
-                    target,
-                    both: (src, dest) => result.Add(Pass.Onto<Source, Target>(src, dest)),
-                    onlyLeft: (src) => result.Add(Pass.On<Source, Target>(src)),
-                    onlyRight: (dest) => result.Add(dest));
-
-                return result.ToArray();
+                return engine
+                   .MergeWithILDeep(source, target)
+                   .ToArray();
             }
 
             /// <summary>
@@ -165,16 +111,9 @@ namespace PassOn
             /// <returns>An array of the target type</returns>
             public static Target[] OntoAnArrayOf<Target>(IEnumerable<Source> source, Target[] target)
             {
-                var result = new List<Target>();
-
-                IterateThrough.Both(
-                    source,
-                    target,
-                    both: (src, i) => result.Add(Pass.Onto<Source, Target>(src, target[i])),
-                    onlyLeft: (src) => result.Add(Pass.On<Source, Target>(src)),
-                    onlyRight: (i) => result.Add(target[i]));
-
-                return result.ToArray();
+                return engine
+                   .MergeWithILDeep(source, target)
+                   .ToArray();
             }
 
             /// <summary>
@@ -185,22 +124,9 @@ namespace PassOn
             /// <returns>A list of the target type</returns>
             public static IList<Target> OntoAListOf<Target>(Source[] source, Target[] target)
             {
-                if (source == null) { return new List<Target>(target); }
-
-                var length = (target != null && target.Length > source.Length) ?
-                    source.Length :
-                    target.Length;
-
-                var result = new List<Target>(length);
-
-                IterateThrough.Both(
-                    source,
-                    target,
-                    both: i => result.Add(Pass.Onto<Source, Target>(source[i], target[i])),
-                    onlyLeft: i => result.Add(Pass.On<Source, Target>(source[i])),
-                    onlyRight: i => result.Add(target[i]));
-
-                return result;
+                return engine
+                   .MergeWithILDeep(source, target)
+                   .ToList();
             }
 
             /// <summary>
@@ -211,18 +137,9 @@ namespace PassOn
             /// <returns>A list of the target type</returns>
             public static IList<Target> OntoAListOf<Target>(Source[] source, IEnumerable<Target> target)
             {
-                if (source == null) { return new List<Target>(Pass.On(target)); }
-
-                var result = new List<Target>();
-
-                IterateThrough.Both(
-                    source,
-                    target,
-                    both: (i, dest) => result.Add(Pass.Onto<Source, Target>(source[i], dest)),
-                    onlyLeft: i => result.Add(Pass.On<Source, Target>(source[i])),
-                    onlyRight: dest => result.Add(Pass.On(dest)));
-
-                return result;
+                return engine
+                   .MergeWithILDeep(source, target)
+                   .ToList();
             }
 
             /// <summary>
@@ -233,21 +150,7 @@ namespace PassOn
             /// <returns>An array of the target type</returns>
             public static Target[] OntoAnArrayOf<Target>(Source[] source, Target[] target)
             {
-                if (source == null) { return target; }
-
-                var result = (Target[])Array.CreateInstance(typeof(Target),
-                    (target != null && target.Length > source.Length) ?
-                    source.Length :
-                    target.Length);
-
-                IterateThrough.Both(
-                    source,
-                    target,
-                    both: i => result[i] = Pass.Onto<Source, Target>(source[i], target[i]),
-                    onlyLeft: i => result[i] = Pass.On<Source, Target>(source[i]),
-                    onlyRight: i => result[i] = Pass.On(target[i]));
-
-                return result;
+                return engine.MergeWithILDeep(source, target);
             }
 
             /// <summary>
@@ -258,19 +161,9 @@ namespace PassOn
             /// <returns>An array of the target type</returns>
             public static Target[] OntoAnArrayOf<Target>(Source[] source, IEnumerable<Target> target)
             {
-                if (source == null)
-                { return System.Linq.Enumerable.ToArray(Pass.On(target)); }
-
-                var result = new List<Target>();
-
-                IterateThrough.Both(
-                    source,
-                    target,
-                    both: (i, dest) => result.Add(Pass.Onto<Source, Target>(source[i], dest)),
-                    onlyLeft: i => result.Add(Pass.On<Source, Target>(source[i])),
-                    onlyRight: dest => result.Add(Pass.On(dest)));
-
-                return result.ToArray();
+                return engine
+                    .MergeWithILDeep(source, target)
+                    .ToArray();
             }
         }
 
@@ -359,7 +252,7 @@ namespace PassOn
         /// <returns>The mapping function</returns>
         public static Func<Source, Target> Mapper<Source, Target>()
         {
-            return (Func<Source, Target>)engine.GetOrCreateMapper<Source, Target>();
+            return engine.GetOrCreateMapper<Source, Target>();
         }
 
         /// <summary>
@@ -382,7 +275,7 @@ namespace PassOn
         /// <returns>The mapping function</returns>
         public static Func<T, T> ShallowMapper<T>()
         {
-            return (Func<T, T>)engine.GetOrCreateShallowMapper<T,T>();
+            return engine.GetOrCreateShallowMapper<T,T>();
         }
 
         /// <summary>
@@ -396,7 +289,7 @@ namespace PassOn
         /// <returns>The mapping function</returns>
         public static Func<Source, Target> ShallowMapper<Source, Target>()
         {
-            return (Func<Source, Target>)engine.GetOrCreateShallowMapper<Source, Target>();
+            return engine.GetOrCreateShallowMapper<Source, Target>();
         }
 
         public static void ClearCache() { engine.ClearCache(); }

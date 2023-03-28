@@ -3,6 +3,7 @@ using PassOn.Engine.Internals;
 using PassOn.EngineExtensions;
 using System;
 using System.Collections;
+using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -101,12 +102,21 @@ namespace PassOn
             var resultLocal =
                 il.DeclareLocal(typeof(Target));
 
-            il.Construct<Target>();
-            il.Emit(OpCodes.Stloc, resultLocal);
+            il.Construct<Target>(resultLocal);
 
             EmitStackOverflowCheck(il, dynMethod);
 
             il.TryEmitBeforeFuncs<Source, Target>();
+            
+            if (typeof(IEnumerable).IsAssignableFrom(typeof(Target)))
+            {
+                var (map, rec) = InternalMapperFactory.GetMapper(typeof(Source), typeof(Target));
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldarg_1); // engine
+                il.Emit(OpCodes.Ldarg_2); // recursionIndex                                          
+                il.Emit(OpCodes.Call, map);
+                il.Emit(OpCodes.Stloc, resultLocal);
+            }
 
             Match.Properties<Source, Target>((src, tgt) =>
             {
@@ -123,6 +133,7 @@ namespace PassOn
                         strategyType == Strategy.Shallow
                         || src.PropertyType.IsValueType
                         || src.PropertyType == typeof(string)
+                        || src.PropertyType.IsSubclassOf(typeof(Delegate))
                 ))
                 {
                     il.EmitPropertyPassing(resultLocal, src, tgt);
@@ -139,7 +150,7 @@ namespace PassOn
 
             il.TryEmitAfterFuncs<Source, Target>();
 
-            il.Emit(OpCodes.Ldloc_0);
+            il.Emit(OpCodes.Ldloc, resultLocal);
             il.Emit(OpCodes.Ret);
 
             var delType = typeof(Func<,,,>)
@@ -168,8 +179,7 @@ namespace PassOn
             var resultLocal =
                 il.DeclareLocal(typeof(Target));
 
-            il.Construct<Target>();
-            il.Emit(OpCodes.Stloc, resultLocal);
+            il.Construct<Target>(resultLocal);
 
             EmitStackOverflowCheck(il, dynMethod);
 
@@ -208,12 +218,7 @@ namespace PassOn
 
         internal static void EmitMapTargetToResult<Target>(ILGenerator il, LocalBuilder resultLocal)
         {
-            //il.Emit(OpCodes.Ldarg_1);
-            //il.Emit(OpCodes.Stloc, resultLocal);
-            //return;
-
-
-            var valueIsNullLabel = il.DefineLabel();
+            var endOfInitialMapLabel = il.DefineLabel();
             var valueIsNotNullLabel = il.DefineLabel();
 
             (
@@ -222,57 +227,30 @@ namespace PassOn
             ) = InternalMapperFactory.GetMapper(
                 typeof(Target), typeof(Target), rawClone: true);
 
-            //IL_0000: nop
+            
             il.Emit(OpCodes.Nop);
-            //IL_0001: ldarg.1
+            
             il.Emit(OpCodes.Ldarg_1);
-            //IL_0002: ldnull
             il.Emit(OpCodes.Ldnull);
-            //IL_0003: ceq
             il.Emit(OpCodes.Ceq);
-            //IL_0005: stloc.1
-            //// sequence point: hidden
-            //IL_0006: ldloc.1
-            //IL_0007: brfalse.s IL_0013
             il.Emit(OpCodes.Brfalse_S, valueIsNotNullLabel);
 
-            //IL_0009: nop
-            //IL_000a: newobj instance void C/ Target::.ctor()
-            if (typeof(Target).IsArray)
-            {
-                il.Emit(OpCodes.Ldc_I4_S, 255);
-                il.Emit(OpCodes.Newarr, typeof(Target).GetElementType());
-            }
-            else
-            {
-                il.Emit(OpCodes.Newobj, typeof(Target).GetConstructor(Type.EmptyTypes));
-            }
+            // if the target value is null, create a new one
+            il.Construct<Target>(resultLocal);
+            // go to the end of the function
+            il.Emit(OpCodes.Br_S, endOfInitialMapLabel);
 
-            // il.Construct<Target>(); // maybe here?
-
-            //IL_000f: stloc.0
-            il.Emit(OpCodes.Stloc, resultLocal);
-            //IL_0010: nop
-            //// sequence point: hidden
-            //IL_0011: br.s IL_001e
-            il.Emit(OpCodes.Br_S, valueIsNullLabel);
-
-            //IL_0013: nop
+            // if the target has a value, copy
             il.MarkLabel(valueIsNotNullLabel);
             il.Emit(OpCodes.Nop);
-            //IL_0014: ldarg.1
             il.Emit(OpCodes.Ldarg_1); // target (merging)
-            //IL_0015: ldarg.2
             il.Emit(OpCodes.Ldarg_2); // engine
-            //IL_0016: ldarg.3
             il.Emit(OpCodes.Ldarg_3); // recursionIndex
-            //IL_0017: call!!1 C::MapObjectWithILDeepInternal <class C/Target, class C/Target>(!!0, class C/Engine, int32)
             il.Emit(OpCodes.Call, mapTarget);
-            //IL_001c: stloc.0
             il.Emit(OpCodes.Stloc, resultLocal);
-            //IL_001d: nop
             il.Emit(OpCodes.Nop);
-            il.MarkLabel(valueIsNullLabel);
+
+            il.MarkLabel(endOfInitialMapLabel);
         }
 
         internal static void EmitReferenceTypeCopy(
@@ -283,11 +261,19 @@ namespace PassOn
             PropertyInfo target,
             bool isForMerging = false)
         {
-            // does not copy a delegate
+            // don't copy a delegate
             if (source.PropertyType.IsSubclassOf(typeof(Delegate))) { return; }
 
             var srcType = source.PropertyType;
             var tgtType = target.PropertyType;
+
+            var srcGetter = source.GetGetMethod();
+            var tgtGetter = target.GetGetMethod();
+            var tgtSetter = target.GetSetMethod();
+            if (srcGetter == null || tgtGetter == null || tgtSetter?.GetParameters().Length != 1) {
+                Debugger.Break();
+                return;
+            }
 
             var srcTypeIsIEnumerable =
                 typeof(IEnumerable).IsAssignableFrom(srcType);
@@ -315,7 +301,7 @@ namespace PassOn
 
             // check if src is null
             il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Callvirt, source.GetGetMethod());
+            il.Emit(OpCodes.Callvirt, srcGetter);
             il.Emit(OpCodes.Ldnull);
             il.Emit(OpCodes.Cgt_Un);
 
@@ -326,12 +312,12 @@ namespace PassOn
 
             il.Emit(OpCodes.Ldloc, resultLocal);
             il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Callvirt, source.GetGetMethod());
+            il.Emit(OpCodes.Callvirt, srcGetter);
 
             if (isMergeable)
             {
                 il.Emit(OpCodes.Ldloc, resultLocal);
-                il.Emit(OpCodes.Callvirt, target.GetGetMethod());
+                il.Emit(OpCodes.Callvirt, tgtGetter);
             }
 
             il.Emit(OpCodes.Ldarg, engineArgIndex); // engine
@@ -344,7 +330,7 @@ namespace PassOn
             }
 
             il.Emit(OpCodes.Call, internalMapFunc);
-            il.Emit(OpCodes.Callvirt, target.GetSetMethod());
+            il.Emit(OpCodes.Callvirt, tgtSetter);
             il.Emit(OpCodes.Nop);
 
             il.MarkLabel(valueIsNullLabel);

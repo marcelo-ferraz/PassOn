@@ -15,6 +15,8 @@ namespace PassOn.EngineExtensions
     {
         internal static void EmitPropertyPassing(this ILGenerator il, LocalBuilder cloneVariable, MethodInfo sourceMap, MethodInfo destMap)
         {
+            if(sourceMap == null || destMap == null) { return; }
+
             il.Emit(OpCodes.Ldloc, cloneVariable);
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Call, sourceMap);
@@ -52,6 +54,11 @@ namespace PassOn.EngineExtensions
 
         internal static void EmitPropertyPassing(this ILGenerator il, LocalBuilder cloneVariable, PropertyInfo srcProperty, PropertyInfo destProperty)
         {
+            var tgtSetter = destProperty.GetSetMethod();
+
+            // this property is the kind: this[int] 
+            if (tgtSetter?.GetParameters().Length != 1) { return; }
+
             EmitPropertyPassing(il, cloneVariable, srcProperty.GetGetMethod(), destProperty.GetSetMethod());
         }   
     }
