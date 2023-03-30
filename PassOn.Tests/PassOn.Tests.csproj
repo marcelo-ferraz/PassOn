@@ -24,8 +24,4 @@
     <ProjectReference Include="..\PassOn\PassOn.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="SDIL\" />
-  </ItemGroup>
-
 </Project>

@@ -1,17 +1,19 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using PassOn.Engine.Extensions;
+using PassOn.Exceptions;
 
-namespace PassOn.EngineExtensions
+namespace PassOn.Engine
 {
-    internal static class Match
+    internal static class PropertyMatcher
     {
         private static PropertyInfo[] GetProperties(Type type)
         {
             return type.GetProperties(BindingFlags.Public/* | BindingFlags.NonPublic*/ | BindingFlags.Instance);
         }
 
-        internal static void PropertiesNoStrategy<Source, Target>(Action<PropertyInfo, PropertyInfo> whenMatch, bool ignoreType = false)
+        internal static void WithoutStrategy<Source, Target>(Action<PropertyInfo, PropertyInfo> whenMatch, bool ignoreType = false)
         {
             var destProperties =
                 GetProperties(typeof(Target));
@@ -36,7 +38,7 @@ namespace PassOn.EngineExtensions
             }
         }
 
-        internal static void Properties<Source, Target>(Action<PropertyInfo, PropertyInfo> whenMatch, bool ignoreType = false)
+        internal static void WithStrategy<Source, Target>(Action<PropertyInfo, PropertyInfo> whenMatch, bool ignoreType = false)
         {
             var destProperties =
                 GetProperties(typeof(Target));
@@ -69,13 +71,13 @@ namespace PassOn.EngineExtensions
                     var destType = destProperty.PropertyType;
 
                     if (srcStrategy?.Type == Strategy.CustomMap) {
-                        srcType = StrategyUtilities
+                        srcType = MapStrategyAttribute
                             .GetMapperInfo<Source>(srcStrategy.Mapper, srcProperty.Name)
                             .ReturnType;
                     }
 
                     if (destStrategy?.Type == Strategy.CustomMap) {
-                        var mapper = StrategyUtilities
+                        var mapper = MapStrategyAttribute
                             .GetMapperInfo<Target>(destStrategy.Mapper, destProperty.Name);
 
                         destType = mapper.GetParameters()[0].ParameterType;                            
@@ -89,7 +91,7 @@ namespace PassOn.EngineExtensions
                     if (isAssignable) 
                     { whenMatch(srcProperty, destProperty); }                    
                 }
-            }
+            }            
         }
     }
 }

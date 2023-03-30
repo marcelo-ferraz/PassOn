@@ -6,7 +6,8 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
-using PassOn.EngineExtensions;
+using PassOn.Engine;
+using PassOn.Engine.Extensions;
 
 namespace PassOn.Tests.ILGenerationTests
 {
@@ -27,7 +28,7 @@ namespace PassOn.Tests.ILGenerationTests
 
             public class List<T>
             {
-                public System.Collections.Generic.List<T> Value { get; set; }
+                public System.Collections.Generic.List<T>? Value { get; set; }
             }
         }
         public class Wrapper<T>
@@ -36,12 +37,12 @@ namespace PassOn.Tests.ILGenerationTests
             public T? AnotherValue { get; set; }
         }
 
-        private Func<Source, PassOnEngine, int, Target> CreateFunc<Source, Target>(Action<DynamicMethod, ILGenerator> addBody)
+        private Func<Source?, MapperEngine?, int, Target> CreateFunc<Source, Target>(Action<DynamicMethod, ILGenerator> addBody)
         {
             var dynMethod = new DynamicMethod(
                 "__testFunction__",
                 typeof(Target),
-                new Type[] { typeof(Source), typeof(PassOnEngine), typeof(int) },
+                new Type[] { typeof(Source), typeof(MapperEngine), typeof(int) },
                 Assembly.GetExecutingAssembly().ManifestModule,
                 true);
 
@@ -53,11 +54,11 @@ namespace PassOn.Tests.ILGenerationTests
             il.Emit(OpCodes.Ret);
 
             var delType = typeof(Func<,,,>)
-                .MakeGenericType(typeof(Source), typeof(PassOnEngine), typeof(int), typeof(Target));
+                .MakeGenericType(typeof(Source), typeof(MapperEngine), typeof(int), typeof(Target));
 
             var func = dynMethod.CreateDelegate(delType);
 
-            return (Func<Source, PassOnEngine, int, Target>)func;
+            return (Func<Source, MapperEngine, int, Target>)func;
         }
 
         private LocalBuilder GetInitializedResultLocal(ILGenerator il) {
@@ -103,7 +104,7 @@ namespace PassOn.Tests.ILGenerationTests
                 }
             };
 
-            var engine = new PassOnEngine();
+            var engine = new MapperEngine();
 
             var result = mapNumProps(
                 expected, engine, 0
@@ -123,7 +124,7 @@ namespace PassOn.Tests.ILGenerationTests
                 il.Emit(OpCodes.Ldc_I4_1);
             });
 
-            var engine = new PassOnEngine();
+            var engine = new MapperEngine();
 
             Assert.Throws<StackOverflowException>(() => mapNumProps(
                 null, null, MapperFactories.MAX_RECURSION + 1
@@ -140,7 +141,7 @@ namespace PassOn.Tests.ILGenerationTests
                 il.Emit(OpCodes.Ldc_I4_1);
             });
 
-            var engine = new PassOnEngine();
+            var engine = new MapperEngine();
 
             var result = mapNumProps(
                 null, null, MapperFactories.MAX_RECURSION - 1
@@ -165,7 +166,7 @@ namespace PassOn.Tests.ILGenerationTests
                 }
             };
 
-            var engine = new PassOnEngine();
+            var engine = new MapperEngine();
 
             var result = mapper(
                 expected, engine, 0
@@ -201,14 +202,14 @@ namespace PassOn.Tests.ILGenerationTests
                     }
             };
                      
-            var engine = new PassOnEngine();
+            var engine = new MapperEngine();
 
             var result = merger(
                 expectedSrc, engine, 0
             );
 
             Assert.That(
-                result?.MappedValue?.Value[0].Number,
+                result?.MappedValue?.Value?[0]?.Number,
                 Is.EqualTo(expectedSrc.MappedValue.Value[0].Number)
             );
 
@@ -238,7 +239,7 @@ namespace PassOn.Tests.ILGenerationTests
                     }
             };
 
-            var engine = new PassOnEngine();
+            var engine = new MapperEngine();
 
             var result = merger(
                 expectedSrc, engine, 0
@@ -275,7 +276,7 @@ namespace PassOn.Tests.ILGenerationTests
                     }
             };
 
-            var engine = new PassOnEngine();
+            var engine = new MapperEngine();
 
             var result = merger(
                 expectedSrc, engine, 0
@@ -303,7 +304,7 @@ namespace PassOn.Tests.ILGenerationTests
             var expectedSrc = new ClassWith.Num
             { Number = new Random().Next(), };
 
-            var engine = new PassOnEngine();
+            var engine = new MapperEngine();
 
             var result = merger(
                 expectedSrc, engine, 0
@@ -340,7 +341,7 @@ namespace PassOn.Tests.ILGenerationTests
                 }
             };
 
-            var engine = new PassOnEngine();
+            var engine = new MapperEngine();
 
             var result = merger(
                 expectedSrc, expectedTgt, engine, 0
@@ -394,7 +395,7 @@ namespace PassOn.Tests.ILGenerationTests
                     }
             };
 
-            var engine = new PassOnEngine();
+            var engine = new MapperEngine();
 
             var result = merger(
                 expectedSrc, expectedTgt, engine, 0
@@ -452,7 +453,7 @@ namespace PassOn.Tests.ILGenerationTests
                 } 
             };
 
-            var engine = new PassOnEngine();
+            var engine = new MapperEngine();
 
             var result = merger(
                 expectedSrc, expectedTgt, engine, 0

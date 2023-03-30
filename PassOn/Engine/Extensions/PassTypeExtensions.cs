@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace PassOn.Utilities
 {
-    public static class TypeMixins
+    public static class PassTypeExtensions
     {
         internal static MethodInfo GetToListOfMethod(this Type type, Type sourceType, Type destType)
         {

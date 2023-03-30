@@ -1,12 +1,11 @@
 ﻿using PassOn.Engine.Extensions;
-using PassOn.EngineExtensions;
 using PassOn.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace PassOn
+namespace PassOn.Engine
 {
     using MapKey = Tuple<Type, Type, bool>;
     using ShallowMapKey = Tuple<Type, Type>;
@@ -26,7 +25,7 @@ namespace PassOn
     /// -> Clones the objects of the 'Address' list deep
     /// -> Clones the sub-objects of the Address object shallow. (at the moment)
     /// </remarks>
-    public class PassOnEngine
+    public class MapperEngine
     {
         // Dictionaries for caching the (pre)compiled generated IL code.
         private MergeDic _cachedILMerge = new MergeDic();
@@ -85,7 +84,7 @@ namespace PassOn
 
             il.TryEmitBeforeFuncs<Source, Target>();
 
-            Match.Properties<Source, Target>((src, target) =>
+            PropertyMatcher.WithStrategy<Source, Target>((src, target) =>
             {
                 il.Emit(OpCodes.Ldloc_0);
                 il.Emit(OpCodes.Ldarg_0);
@@ -158,7 +157,7 @@ namespace PassOn
             _cachedILMerge.Clear();
         }
 
-        internal Func<Source, Target, PassOnEngine, int, Target> GetOrCreateInternalMerger<Source, Target>()
+        internal Func<Source, Target, MapperEngine, int, Target> GetOrCreateInternalMerger<Source, Target>()
         {
             Delegate mapperDel = null;
 
@@ -174,10 +173,10 @@ namespace PassOn
                 _cachedILMerge.TryAdd(key, mapperDel);
             }
 
-            return (Func<Source, Target, PassOnEngine, int, Target>)mapperDel;
+            return (Func<Source, Target, MapperEngine, int, Target>)mapperDel;
         }
 
-        internal Func<Source, PassOnEngine, int, Target> GetOrCreateInternalMapper<Source, Target>(bool raw = false)
+        internal Func<Source, MapperEngine, int, Target> GetOrCreateInternalMapper<Source, Target>(bool raw = false)
         {
             var key = new MapKey(
                typeof(Target), typeof(Source), raw);
@@ -192,7 +191,7 @@ namespace PassOn
 
                 _cachedILDeepMap.TryAdd(key, mapperDel);
             }
-            return (Func<Source, PassOnEngine, int, Target>)mapperDel;
+            return (Func<Source, MapperEngine, int, Target>)mapperDel;
         }
 
         private static MethodInfo GetMappingForCollections(Type source, Type target)

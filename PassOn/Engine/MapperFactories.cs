@@ -1,27 +1,26 @@
 ﻿using PassOn.Engine.Extensions;
 using PassOn.Engine.Internals;
-using PassOn.EngineExtensions;
 using System;
 using System.Collections;
 using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace PassOn
+namespace PassOn.Engine
 {
     public static class MapperFactories
     {
         public static int MAX_RECURSION = 64;
         private static string OVERFLOW_MESSAGE = "There might be a cyclical dependency on one of your models. Please review your code and try again";
 
-        public static Func<Source, Target, PassOnEngine, int, Target> CreateMerger<Source, Target>()
+        public static Func<Source, Target, MapperEngine, int, Target> CreateMerger<Source, Target>()
         {
             Delegate mapper = null;
 
             var dynMethod = new DynamicMethod(
                 "DoDeepMerge",
                 typeof(Target),
-                new Type[] { typeof(Source), typeof(Target), typeof(PassOnEngine), typeof(int) },
+                new Type[] { typeof(Source), typeof(Target), typeof(MapperEngine), typeof(int) },
                 Assembly.GetExecutingAssembly().ManifestModule,
                 true);
 
@@ -43,7 +42,7 @@ namespace PassOn
                 il.Emit(OpCodes.Stloc, resultLocal);
             }
 
-            Match.Properties<Source, Target>(
+            PropertyMatcher.WithStrategy<Source, Target>(
                 (src, tgt) =>
                 {
                     var srcStrategyType = src.GetStrategyType();
@@ -59,7 +58,7 @@ namespace PassOn
                             || src.PropertyType == typeof(string)
                     ))
                     {
-                        il.EmitPropertyPassing(resultLocal, src, tgt);
+                        il.EmitPropertyAssignment(resultLocal, src, tgt);
                         return;
                     }
 
@@ -77,14 +76,14 @@ namespace PassOn
             il.Emit(OpCodes.Ret);
 
             var delType = typeof(Func<,,,,>)
-                .MakeGenericType(typeof(Source), typeof(Target), typeof(PassOnEngine), typeof(int), typeof(Target));
+                .MakeGenericType(typeof(Source), typeof(Target), typeof(MapperEngine), typeof(int), typeof(Target));
 
             mapper = dynMethod.CreateDelegate(delType);
 
-            return (Func<Source, Target, PassOnEngine, int, Target>)mapper;
+            return (Func<Source, Target, MapperEngine, int, Target>)mapper;
         }
 
-        public static Func<Source, PassOnEngine, int, Target> CreateMapper<Source, Target>()
+        public static Func<Source, MapperEngine, int, Target> CreateMapper<Source, Target>()
         {
             Delegate mapper = null;
 
@@ -92,7 +91,7 @@ namespace PassOn
             var dynMethod = new DynamicMethod(
                 "DoDeepMap",
                 typeof(Target),
-                new Type[] { typeof(Source), typeof(PassOnEngine), typeof(int) },
+                new Type[] { typeof(Source), typeof(MapperEngine), typeof(int) },
                 Assembly.GetExecutingAssembly().ManifestModule,
                 true);
 
@@ -118,7 +117,7 @@ namespace PassOn
                 il.Emit(OpCodes.Stloc, resultLocal);
             }
 
-            Match.Properties<Source, Target>((src, tgt) =>
+            PropertyMatcher.WithStrategy<Source, Target>((src, tgt) =>
             {
                 var strategyType = src.GetStrategyType();
 
@@ -136,7 +135,7 @@ namespace PassOn
                         || src.PropertyType.IsSubclassOf(typeof(Delegate))
                 ))
                 {
-                    il.EmitPropertyPassing(resultLocal, src, tgt);
+                    il.EmitPropertyAssignment(resultLocal, src, tgt);
                     return;
                 }
 
@@ -154,14 +153,14 @@ namespace PassOn
             il.Emit(OpCodes.Ret);
 
             var delType = typeof(Func<,,,>)
-                .MakeGenericType(typeof(Source), typeof(PassOnEngine), typeof(int), typeof(Target));
+                .MakeGenericType(typeof(Source), typeof(MapperEngine), typeof(int), typeof(Target));
 
             mapper = dynMethod.CreateDelegate(delType);
 
-            return (Func<Source, PassOnEngine, int, Target>)mapper;
+            return (Func<Source, MapperEngine, int, Target>)mapper;
         }
 
-        internal static Func<Source, PassOnEngine, int, Target> CreateRawMapper<Source, Target>()
+        internal static Func<Source, MapperEngine, int, Target> CreateRawMapper<Source, Target>()
         {
             Delegate mapper = null;
 
@@ -169,7 +168,7 @@ namespace PassOn
             var dynMethod = new DynamicMethod(
                 "DoDeepRawMap",
                 typeof(Target),
-                new Type[] { typeof(Source), typeof(PassOnEngine), typeof(int) },
+                new Type[] { typeof(Source), typeof(MapperEngine), typeof(int) },
                 Assembly.GetExecutingAssembly().ManifestModule,
                 true);
 
@@ -183,7 +182,7 @@ namespace PassOn
 
             EmitStackOverflowCheck(il, dynMethod);
 
-            Match.PropertiesNoStrategy<Source, Target>((src, tgt) =>
+            PropertyMatcher.WithoutStrategy<Source, Target>((src, tgt) =>
             {
                 if (tgt.PropertyType.IsAssignableFrom(src.PropertyType)
                     && (
@@ -192,7 +191,7 @@ namespace PassOn
                     )
                 )
                 {
-                    il.EmitPropertyPassing(resultLocal, src, tgt);
+                    il.EmitPropertyAssignment(resultLocal, src, tgt);
                     return;
                 }
 
@@ -209,11 +208,11 @@ namespace PassOn
             il.Emit(OpCodes.Ret);
 
             var delType = typeof(Func<,,,>)
-                .MakeGenericType(typeof(Source), typeof(PassOnEngine), typeof(int), typeof(Target));
+                .MakeGenericType(typeof(Source), typeof(MapperEngine), typeof(int), typeof(Target));
 
             mapper = dynMethod.CreateDelegate(delType);
 
-            return (Func<Source, PassOnEngine, int, Target>)mapper;
+            return (Func<Source, MapperEngine, int, Target>)mapper;
         }
 
         internal static void EmitMapTargetToResult<Target>(ILGenerator il, LocalBuilder resultLocal)

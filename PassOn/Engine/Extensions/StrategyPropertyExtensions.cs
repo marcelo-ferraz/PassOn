@@ -9,9 +9,9 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PassOn.EngineExtensions
+namespace PassOn.Engine.Extensions
 {
-    internal static class PropertyInfoExtensions
+    internal static class StrategyPropertyExtensions
     {
         /// <summary>
         /// Returns the type of cloning to apply on a certain srcProperty when in custom mode.

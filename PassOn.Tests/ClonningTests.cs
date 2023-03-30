@@ -1,5 +1,6 @@
 ﻿using PassOn.Tests.Models;
 using PassOn;
+using PassOn.Engine;
 
 namespace PassOn.Tests
 {
@@ -52,7 +53,7 @@ namespace PassOn.Tests
                 SecondList = new Inheritance.IntWrapper[] { new Inheritance.IntWrapper() { Value = 4 } },
             };
 
-            var engine = new PassOnEngine();
+            var engine = new MapperEngine();
 
             var result =
                 engine.MapObjectWithILDeep<Inheritance.Simple, ComplexClass>(input);
@@ -78,7 +79,7 @@ namespace PassOn.Tests
                 Parent = obj
             };
 
-            var engine = new PassOnEngine();
+            var engine = new MapperEngine();
 
             Assert.Throws<StackOverflowException>(
                 () =>  engine.MapObjectWithILDeep<CyclicalDependency.Parent, CyclicalDependency.Parent>(obj)
@@ -103,7 +104,7 @@ namespace PassOn.Tests
                 SecondList = new Inheritance.IntWrapper[] { new Inheritance.IntWrapper() { Value = 4 } },
             };
 
-            var engine = new PassOnEngine();
+            var engine = new MapperEngine();
 
             IList<ComplexClass> result = engine
                 .MapObjectWithILDeep<
@@ -122,7 +123,7 @@ namespace PassOn.Tests
             var date =
                 DateTime.Now;
 
-            var engine = new PassOnEngine();
+            var engine = new MapperEngine();
 
             var input = new List<int> { 1, 2, 3, 4 };
 
@@ -153,7 +154,7 @@ namespace PassOn.Tests
                 SecondList = new Inheritance.IntWrapper[] { new Inheritance.IntWrapper() { Value = 4 } },
             };
 
-            var engine = new PassOnEngine();
+            var engine = new MapperEngine();
 
             var result = engine
                 .MapObjectWithILDeep<
@@ -172,7 +173,7 @@ namespace PassOn.Tests
             var date =
                 DateTime.Now;
 
-            var engine = new PassOnEngine();
+            var engine = new MapperEngine();
 
             var input = new int[] { 1, 2, 3, 4 };
 

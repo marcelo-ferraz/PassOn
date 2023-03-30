@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 
-namespace PassOn.EngineExtensions
+namespace PassOn.Engine.Extensions
 {
     internal static class TypeExtensions
     {

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using PassOn.Exceptions;
+using System;
+using System.Reflection;
 
 namespace PassOn
 {
@@ -33,5 +35,24 @@ namespace PassOn
         }
 
         public string Mapper { get; set; }
+        internal static MethodInfo GetMapperInfo<T>(
+            string mapperName,
+            string propName
+        )
+        {
+            var propMapName = !string.IsNullOrEmpty(mapperName)
+                ? mapperName
+                : $"Map{propName}";
+
+            var propMapInfo = typeof(T).GetMethod(propMapName);
+
+            if (propMapInfo == null)
+            { throw new CustomMapNoMatchException<T>(propMapName, propName); }
+
+            if (propMapInfo.IsStatic)
+            { throw new StaticCustomMapFoundException<T>(propMapName, propName); }
+
+            return propMapInfo;
+        }
     }
 }

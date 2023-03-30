@@ -1,38 +1,16 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Reflection;
-using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
-using PassOn.Exceptions;
+using PassOn.Utilities;
 
-namespace PassOn.EngineExtensions
+namespace PassOn.Engine.Extensions
 {
-    internal static class StrategyUtilities
+    internal static class StrategyILExtensions
     {
-        public static MethodInfo GetMapperInfo<T>(
-            string mapperName,
-            string propName
-        )
-        {
-            var propMapName = !string.IsNullOrEmpty(mapperName)
-                ? mapperName
-                : $"Map{propName}";
-
-            var propMapInfo = typeof(T).GetMethod(propMapName);
-
-            if (propMapInfo == null)
-            { throw new CustomMapNoMatchException<T>(propMapName, propName); }
-
-            if (propMapInfo.IsStatic)
-            { throw new StaticCustomMapFoundException<T>(propMapName, propName); }
-
-            return propMapInfo;
-        }
-
         internal static bool TryEmitByStrategy<Source, Target>(this ILGenerator il, LocalBuilder cloneVariable, PropertyInfo src, PropertyInfo tgt)
         {
             var srcStrategy = src.GetCloneStrategy();
@@ -53,15 +31,19 @@ namespace PassOn.EngineExtensions
 
             if (srcInspectionType == Strategy.CustomMap)
             {
-                var mapInfo = GetMapperInfo<Source>(srcStrategy.Mapper, src.Name);
-                il.EmitPropertyPassing(cloneVariable, mapInfo, tgt);
+                var mapInfo = MapStrategyAttribute
+                    .GetMapperInfo<Source>(srcStrategy.Mapper, src.Name);
+
+                il.EmitPropertyAssignment(cloneVariable, mapInfo, tgt);
                 return true;
             }
 
             if (tgtInspectionType == Strategy.CustomMap)
             {
-                var mapInfo = GetMapperInfo<Target>(tgtStrategy.Mapper, tgt.Name);
-                il.EmitPropertyPassing(cloneVariable, src, mapInfo);
+                var mapInfo = MapStrategyAttribute
+                    .GetMapperInfo<Target>(tgtStrategy.Mapper, tgt.Name);
+
+                il.EmitPropertyAssignment(cloneVariable, src, mapInfo);
                 return true;
             }
 
@@ -72,11 +54,12 @@ namespace PassOn.EngineExtensions
                     || src.PropertyType == typeof(string)
             ))
             {
-                il.EmitPropertyPassing(cloneVariable, src, tgt);
+                il.EmitPropertyAssignment(cloneVariable, src, tgt);
                 return true;
             }
 
             return false;
         }
+
     }
 }

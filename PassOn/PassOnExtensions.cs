@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace PassOn
 {
-    public static class PassOnMixins
+    public static class PassOnExtensions
     {
         /// <summary>
         /// Maps or merges all the values of an left to another array of different types

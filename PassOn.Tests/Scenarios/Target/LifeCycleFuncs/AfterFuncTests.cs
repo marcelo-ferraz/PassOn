@@ -1,4 +1,5 @@
-﻿using PassOn.Exceptions;
+﻿using PassOn.Engine;
+using PassOn.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -212,7 +213,7 @@ namespace PassOn.Tests.Scenarios.Target.LifeCycleFuncs
 
         Guid initialId;
         string initialText;
-        PassOnEngine passOnEngine;
+        MapperEngine passOnEngine;
 
         [SetUp]
         public void Setup()
@@ -220,7 +221,7 @@ namespace PassOn.Tests.Scenarios.Target.LifeCycleFuncs
 
             initialId = Guid.NewGuid();
             initialText = Utilities.RandomString();
-            passOnEngine = new PassOnEngine();
+            passOnEngine = new MapperEngine();
         }
 
         private (S source, Func<S, Source> mapper) Arrange<S>()

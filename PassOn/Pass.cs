@@ -1,4 +1,4 @@
-﻿using PassOn.Utilities;
+﻿using PassOn.Engine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ namespace PassOn
 {
     public static class Pass
     {
-        private static PassOnEngine engine = new PassOnEngine();
+        private static MapperEngine engine = new MapperEngine();
 
         public static class ACollectionOf<Source>
         {

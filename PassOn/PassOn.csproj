@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Engine\Extensions\StrategyILExtensions.cs" />
     <Compile Include="Engine\Internals\InternalRefMergers.cs" />
     <Compile Include="Engine\Internals\InternalRefMappers.cs" />
     <Compile Include="Engine\Internals\InternalValueMappers.cs" />
@@ -55,25 +56,23 @@
     <Compile Include="Engine\MapperFactories.cs" />
     <Compile Include="TargetAttribute.cs" />
     <Compile Include="SourceAttribute.cs" />
-    <Compile Include="Engine\Extensions\EmitLifeCycleFuncsExtensions.cs" />
+    <Compile Include="Engine\Extensions\LifeCycleFuncsILExtensions.cs" />
     <Compile Include="Engine\Extensions\TypeExtensions.cs" />
-    <Compile Include="Engine\Match.cs" />
-    <Compile Include="Engine\StrategyUtilities.cs" />
-    <Compile Include="Engine\Extensions\AssignmentExtensions.cs" />
-    <Compile Include="Engine\Extensions\PropertyInfoExtensions.cs" />
+    <Compile Include="Engine\PropertyMatcher.cs" />
+    <Compile Include="Engine\Extensions\PropertyAssignmentILExtensions.cs" />
+    <Compile Include="Engine\Extensions\StrategyPropertyExtensions.cs" />
     <Compile Include="MapStrategyAttribute.cs" />
     <Compile Include="Exceptions\CouldNotMatchCustomMapException.cs" />
     <Compile Include="Exceptions\InvalidArgCountLifeCycleFunctionException.cs" />
     <Compile Include="Exceptions\StaticCustomMapFoundException.cs" />
     <Compile Include="Strategy.cs" />
     <Compile Include="Pass.cs" />
-    <Compile Include="Engine\PassOnEngine.cs" />
-    <Compile Include="PassOnMixins.cs" />
+    <Compile Include="Engine\MapperEngine.cs" />
+    <Compile Include="PassOnExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Exceptions\TooManyArgsCustomMapException.cs" />
     <Compile Include="Utilities\IEnumerableExtensions.cs" />
-    <Compile Include="Utilities\TypeMixins.cs" />
-    <Compile Include="Utilities\IterateThrough.cs" />
+    <Compile Include="Engine\Extensions\PassTypeExtensions.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

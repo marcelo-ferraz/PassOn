@@ -9,7 +9,7 @@ using PassOn.Exceptions;
 
 namespace PassOn.Engine.Extensions
 {
-    internal static class EmitLifeCycleFuncsExtensions
+    internal static class LifeCycleFuncsILExtensions
     {
         internal static void TryEmitBeforeFuncs<Source, Target>(this ILGenerator il)
         {
