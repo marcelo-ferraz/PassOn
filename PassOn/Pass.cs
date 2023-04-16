@@ -168,44 +168,62 @@ namespace PassOn
         }
 
         /// <summary>
-        /// Maps an object with Deep Cloning or with a custom strategy 
-        /// such as Shallow and/or Deep combined (use the MapStrategyAttribute)
+        /// Maps an object deeply or with mixed custom strategy.         
         /// </summary>
-        /// <param name="input">Object to perform cloning on.</param>
-        /// <returns>A new instance of the mapped object.</returns>
+        /// <remarks>
+        /// To mix "Shallow", "Deep", "Custom" and "Ignore" strategies on the model, use the MapStrategyAttribute
+        ///</remarks>
+        /// <param name="input">The source object</param>
+        /// <returns>A new mapped instance of the object.</returns>
         public static Target On<Source, Target>(Source input)
         {
             return engine.MapObjectWithILDeep<Source, Target>(input);
         }
 
         /// <summary>
-        /// Maps an object with one strategy (Deep or Shallow)
+        /// Maps an object deeply or with mixed custom strategy.         
         /// </summary>
-        /// <param name="input">Object to perform cloning on.</param>
-        /// <param name="strategy">strategy for the mapping</param>
-        /// <returns>A new instance of the mapped object, in this case a clone.</returns>
+        /// <remarks>
+        /// To mix "Shallow", "Deep", "Custom" and "Ignore" strategies on the model, use the MapStrategyAttribute
+        /// </remarks>
+        /// <param name="input">The source object</param>
+        /// <param name="strategy">An mapping strategy that overrides the first level</param>
+        /// <returns>A new mapped instance of the object.</returns>
         /// <exception cref="InvalidOperationException">When a wrong enum for the strategy is passed.</exception>
         public static Target On<Source, Target>(Source input, Strategy strategy = Strategy.Deep)
         {
-            return (strategy == Strategy.Shallow) ?
-                engine.CloneObjectWithILShallow<Source, Target>(input) :
-                engine.MapObjectWithILDeep<Source, Target>(input);
+            if (strategy == Strategy.Shallow) {
+                return engine.CloneObjectWithILShallow<Source, Target>(input);
+            }
+
+            if (strategy == Strategy.Deep)
+            {
+                return engine.MapObjectWithILDeep<Source, Target>(input);
+            }
+
+            throw new InvalidOperationException($"The \"{strategy}\" strategy is invalid for this scope!");
         }
 
         /// <summary>
-        /// Maps an object with Deep Cloning or with a custom strategy such as Shallow and/or Deep combined (use the MapStrategyAttribute)
+        /// Maps an object deeply or with mixed custom strategy.         
         /// </summary>
-        /// <typeparam name="Target"></typeparam>
+        /// <remarks>
+        /// To mix "Shallow", "Deep", "Custom" and "Ignore" strategies on the model, use the MapStrategyAttribute
+        /// </remarks>
+        /// <typeparam name="T"></typeparam>
         /// <param name="input">Object to perform cloning on.</param>
         /// <returns>A new instance of the mapped object, in this case a clone.</returns>
-        public static Target On<Target>(Target input)
+        public static T On<T>(T input)
         {
-            return engine.MapObjectWithILDeep<Target, Target>(input);
+            return engine.MapObjectWithILDeep<T, T>(input);
         }
 
         /// <summary>
-        /// Clone an object with one strategy (Deep or Shallow)
+        /// Maps an object deeply or with mixed custom strategy.         
         /// </summary>
+        /// <remarks>
+        /// To mix "Shallow", "Deep", "Custom" and "Ignore" strategies on the model, use the MapStrategyAttribute
+        /// </remarks>
         /// <typeparam name="T"></typeparam>
         /// <param name="input">Object to perform cloning on.</param>
         /// <param name="strategy">strategy for the mapping</param>
@@ -219,7 +237,7 @@ namespace PassOn
         }
 
         /// <summary>
-        /// Maps an object with Deep Cloning or with a custom strategy 
+        /// Merges an object with Deep mapping or with a custom strategy 
         /// such as Shallow and/or Deep combined (use the MapStrategyAttribute)
         /// </summary>
         /// <typeparam name="Overlap"></typeparam>
@@ -245,7 +263,7 @@ namespace PassOn
         }
 
         /// <summary>
-        /// Register, if not cached, and returns the mapping function 
+        /// Registers (if not already) a mapping function and returns it.
         /// </summary>
         /// <typeparam name="Source"></typeparam>
         /// <typeparam name="Target"></typeparam>
@@ -256,7 +274,7 @@ namespace PassOn
         }
 
         /// <summary>
-        /// Register, if not cached, and returns the mapping function  
+        /// Registers (if not already) a mapping function and returns it. 
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns>The mapping function</returns>
@@ -266,7 +284,7 @@ namespace PassOn
         }
 
         /// <summary>
-        /// Register, if not cached, and returns the mapping function 
+        /// Registers (if not already) a mapping function and returns it.
         /// </summary>
         /// <remarks>
         /// A shallow mapper moves the references (copy the pointer) and copies the primitives
@@ -279,7 +297,7 @@ namespace PassOn
         }
 
         /// <summary>
-        /// Register, if not cached, and returns the mapping function.
+        /// Registers (if not already) a mapping function and returns it.
         /// </summary>
         /// <remarks>
         /// A shallow mapper moves the references (copy the pointer) and copies the primitives
